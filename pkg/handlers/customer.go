@@ -3,6 +3,7 @@ package handlers
 import (
 	"car-rental/pkg/database"
 	"car-rental/pkg/models"
+	"car-rental/pkg/utils"
 	"net/http"
 	"strconv"
 
@@ -107,9 +108,20 @@ func DeleteCustomer(c *gin.Context) {
 		return
 	}
 
+	constraints := utils.CheckCustomerBookingConstraints(customer.No)
+
+	if constraints.HasActive {
+		details := map[string]interface{}{
+			"active_bookings": constraints.ActiveBookings,
+			"total_bookings":  constraints.TotalBookings,
+		}
+		utils.RespondWithConstraintError(c, "customer", customer.No, "active_bookings", details)
+		return
+	}
+
 	result := database.DB.Delete(customer)
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete customer"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete customer from database"})
 		return
 	}
 

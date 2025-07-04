@@ -3,6 +3,7 @@ package handlers
 import (
 	"car-rental/pkg/database"
 	"car-rental/pkg/models"
+	"car-rental/pkg/utils"
 	"net/http"
 	"strconv"
 
@@ -106,18 +107,20 @@ func DeleteDriver(c *gin.Context) {
 		return
 	}
 
-	// Check if driver has active bookings
-	var activeBookingCount int64
-	database.DB.Model(&models.Booking{}).Where("driver_id = ? AND finished = ?", driver.No, false).Count(&activeBookingCount)
+	constraints := utils.CheckDriverBookingConstraints(driver.No)
 
-	if activeBookingCount > 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot delete driver with active bookings"})
+	if constraints.HasActive {
+		details := map[string]interface{}{
+			"active_bookings": constraints.ActiveBookings,
+			"total_bookings":  constraints.TotalBookings,
+		}
+		utils.RespondWithConstraintError(c, "driver", driver.No, "active_bookings", details)
 		return
 	}
 
 	result := database.DB.Delete(driver)
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete driver"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete driver from database"})
 		return
 	}
 

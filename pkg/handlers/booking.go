@@ -3,6 +3,7 @@ package handlers
 import (
 	"car-rental/pkg/database"
 	"car-rental/pkg/models"
+	"car-rental/pkg/utils"
 	"net/http"
 	"strconv"
 	"time"
@@ -263,7 +264,11 @@ func DeleteBooking(c *gin.Context) {
 
 	// Don't allow deleting finished bookings
 	if booking.Finished {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot delete a finished booking"})
+		details := map[string]interface{}{
+			"booking_id": booking.No,
+			"finished":   booking.Finished,
+		}
+		utils.RespondWithConstraintError(c, "booking", booking.No, "finished_booking", details)
 		return
 	}
 
@@ -274,20 +279,34 @@ func DeleteBooking(c *gin.Context) {
 	result := tx.Delete(booking)
 	if result.Error != nil {
 		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete booking"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete booking from database"})
 		return
 	}
 
 	// Restore car stock
 	var car models.Car
-	if err := tx.First(&car, booking.CarsID).Error; err == nil {
-		tx.Model(&car).Update("stock", car.Stock+1)
+	if err := tx.First(&car, booking.CarsID).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find associated car for stock restoration"})
+		return
+	}
+
+	if err := tx.Model(&car).Update("stock", car.Stock+1).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to restore car stock"})
+		return
 	}
 
 	// Commit transaction
 	tx.Commit()
 
-	c.JSON(http.StatusOK, gin.H{"message": "Booking deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Booking deleted successfully and car stock restored",
+		"details": map[string]interface{}{
+			"deleted_booking_id": booking.No,
+			"restored_car_stock": car.Stock + 1,
+		},
+	})
 }
 
 // FinishBooking marks a booking as finished and restores car stock
