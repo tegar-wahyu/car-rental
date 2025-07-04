@@ -110,12 +110,17 @@ func DeleteCustomer(c *gin.Context) {
 
 	constraints := utils.CheckCustomerBookingConstraints(customer.No)
 
-	if constraints.HasActive {
+	if constraints.HasBookings {
 		details := map[string]interface{}{
 			"active_bookings": constraints.ActiveBookings,
 			"total_bookings":  constraints.TotalBookings,
 		}
-		utils.RespondWithConstraintError(c, "customer", customer.No, "active_bookings", details)
+		
+		if constraints.HasActive {
+			utils.RespondWithConstraintError(c, "customer", customer.No, "active_bookings", details)
+		} else {
+			utils.RespondWithConstraintError(c, "customer", customer.No, "booking_history", details)
+		}
 		return
 	}
 

@@ -75,6 +75,8 @@ func RespondWithConstraintError(c *gin.Context, entityType string, entityID int,
 	switch constraint {
 	case "active_bookings":
 		message = "Cannot delete " + entityType + " with active bookings. Please finish or cancel active bookings first."
+	case "booking_history":
+		message = "Cannot delete " + entityType + " with booking history. " + capitalizeFirst(entityType) + " has completed bookings in the system."
 	case "finished_booking":
 		message = "Cannot delete finished booking. Finished bookings are kept for historical records."
 	default:
@@ -90,4 +92,12 @@ func RespondWithConstraintError(c *gin.Context, entityType string, entityID int,
 	}
 
 	c.JSON(http.StatusBadRequest, errorResponse)
+}
+
+// capitalizeFirst capitalizes the first letter of a string
+func capitalizeFirst(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	return string(s[0]-32) + s[1:] // Convert first char to uppercase
 }

@@ -109,12 +109,17 @@ func DeleteDriver(c *gin.Context) {
 
 	constraints := utils.CheckDriverBookingConstraints(driver.No)
 
-	if constraints.HasActive {
+	if constraints.HasBookings {
 		details := map[string]interface{}{
 			"active_bookings": constraints.ActiveBookings,
 			"total_bookings":  constraints.TotalBookings,
 		}
-		utils.RespondWithConstraintError(c, "driver", driver.No, "active_bookings", details)
+		
+		if constraints.HasActive {
+			utils.RespondWithConstraintError(c, "driver", driver.No, "active_bookings", details)
+		} else {
+			utils.RespondWithConstraintError(c, "driver", driver.No, "booking_history", details)
+		}
 		return
 	}
 
