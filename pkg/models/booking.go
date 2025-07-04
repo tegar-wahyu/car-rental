@@ -17,15 +17,19 @@ type Booking struct {
 	DriverID        *int      `json:"driver_id" gorm:"column:driver_id"`
 	TotalDriverCost float64   `json:"total_driver_cost" gorm:"column:total_driver_cost;default:0"`
 
-	Customer Customer `json:"customer,omitempty" gorm:"foreignKey:CustomerID;references:No" binding:"-"`
-	Car      Car      `json:"car,omitempty" gorm:"foreignKey:CarsID;references:No" binding:"-"`
+	Customer    Customer    `json:"customer,omitempty" gorm:"foreignKey:CustomerID;references:No" binding:"-"`
+	Car         Car         `json:"car,omitempty" gorm:"foreignKey:CarsID;references:No" binding:"-"`
+	Driver      *Driver     `json:"driver,omitempty" gorm:"foreignKey:DriverID;references:No" binding:"-"`
+	BookingType BookingType `json:"booking_type,omitempty" gorm:"foreignKey:BookingTypeID;references:No" binding:"-"`
 }
 
 type BookingUpdate struct {
-	StartRent *time.Time `json:"start_rent,omitempty"`
-	EndRent   *time.Time `json:"end_rent,omitempty"`
-	TotalCost *float64   `json:"total_cost,omitempty"`
-	Finished  *bool      `json:"finished,omitempty"`
+	StartRent       *time.Time `json:"start_rent,omitempty"`
+	EndRent         *time.Time `json:"end_rent,omitempty"`
+	TotalCost       *float64   `json:"total_cost,omitempty"`
+	Finished        *bool      `json:"finished,omitempty"`
+	Discount        *float64   `json:"discount,omitempty"`
+	TotalDriverCost *float64   `json:"total_driver_cost,omitempty"`
 }
 
 func (Booking) TableName() string {
