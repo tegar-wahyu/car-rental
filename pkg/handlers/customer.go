@@ -115,3 +115,78 @@ func DeleteCustomer(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Customer deleted successfully"})
 }
+
+// SubscribeToMembership subscribes a customer to a membership plan
+func SubscribeToMembership(c *gin.Context) {
+	customer, status, err := findCustomerByID(c)
+	if err != nil {
+		if status == http.StatusBadRequest {
+			c.JSON(status, gin.H{"error": "Invalid customer ID"})
+		} else {
+			c.JSON(status, gin.H{"error": "Customer not found"})
+		}
+		return
+	}
+
+	membershipIDStr := c.Param("membership_id")
+	membershipID, err := strconv.Atoi(membershipIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid membership ID"})
+		return
+	}
+
+	// Validate membership exists
+	var membership models.Membership
+	if err := database.DB.First(&membership, membershipID).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Membership not found"})
+		return
+	}
+
+	// Update customer membership
+	result := database.DB.Model(customer).Update("membership_id", membershipID)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to subscribe to membership"})
+		return
+	}
+
+	// Reload customer with membership
+	database.DB.Preload("Membership").First(customer, customer.No)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Successfully subscribed to membership",
+		"data":    customer,
+	})
+}
+
+// UnsubscribeFromMembership removes a customer's membership
+func UnsubscribeFromMembership(c *gin.Context) {
+	customer, status, err := findCustomerByID(c)
+	if err != nil {
+		if status == http.StatusBadRequest {
+			c.JSON(status, gin.H{"error": "Invalid customer ID"})
+		} else {
+			c.JSON(status, gin.H{"error": "Customer not found"})
+		}
+		return
+	}
+
+	if customer.MembershipID == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Customer is not subscribed to any membership"})
+		return
+	}
+
+	// Remove membership
+	result := database.DB.Model(customer).Update("membership_id", nil)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to unsubscribe from membership"})
+		return
+	}
+
+	// Reload customer
+	database.DB.First(customer, customer.No)
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Successfully unsubscribed from membership",
+		"data":    customer,
+	})
+}
