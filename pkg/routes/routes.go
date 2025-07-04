@@ -2,7 +2,7 @@ package routes
 
 import (
 	"car-rental/pkg/handlers"
-	
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,6 +15,16 @@ func SetupRoutes(r *gin.Engine) {
 		customers.POST("", handlers.CreateCustomer)
 		customers.PUT("/:id", handlers.UpdateCustomer)
 		customers.DELETE("/:id", handlers.DeleteCustomer)
+	}
+
+	// Car routes
+	cars := r.Group("/cars")
+	{
+		cars.GET("", handlers.GetCars)
+		cars.GET("/:id", handlers.GetCar)
+		cars.POST("", handlers.CreateCar)
+		cars.PUT("/:id", handlers.UpdateCar)
+		cars.DELETE("/:id", handlers.DeleteCar)
 	}
 
 	// Health check route
