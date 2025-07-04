@@ -1,14 +1,28 @@
 package main
 
 import (
+	"car-rental/pkg/database"
 	"car-rental/pkg/routes"
 	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found or error loading .env file")
+	}
+
+	database.Connect()
+	database.Migrate()
+
+	// Set Gin mode
+	if os.Getenv("GIN_MODE") == "" {
+		gin.SetMode(gin.DebugMode)
+	}
+	
 	// Initialize Gin router
 	r := gin.Default()
 
