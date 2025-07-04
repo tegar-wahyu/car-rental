@@ -27,6 +27,17 @@ func SetupRoutes(r *gin.Engine) {
 		cars.DELETE("/:id", handlers.DeleteCar)
 	}
 
+	// Booking routes
+	bookings := r.Group("/bookings")
+	{
+		bookings.GET("", handlers.GetBookings)
+		bookings.GET("/:id", handlers.GetBooking)
+		bookings.POST("", handlers.CreateBooking)
+		bookings.PUT("/:id", handlers.UpdateBooking)
+		bookings.DELETE("/:id", handlers.DeleteBooking)
+		bookings.PUT("/:id/finish", handlers.FinishBooking)
+	}
+
 	// Health check route
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
