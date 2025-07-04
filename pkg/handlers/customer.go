@@ -3,7 +3,6 @@ package handlers
 import (
 	"car-rental/pkg/database"
 	"car-rental/pkg/models"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -61,12 +60,6 @@ func CreateCustomer(c *gin.Context) {
 		return
 	}
 
-	// Validate customer data
-	if err := validateCustomer(customer); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
 	result := database.DB.Create(&customer)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create customer"})
@@ -89,12 +82,6 @@ func UpdateCustomer(c *gin.Context) {
 
 	var updateData models.Customer
 	if err := c.ShouldBindJSON(&updateData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Validate update data before database operation
-	if err := validateCustomer(updateData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -127,15 +114,4 @@ func DeleteCustomer(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Customer deleted successfully"})
-}
-
-// validateCustomer validates customer data before database operations
-func validateCustomer(customer models.Customer) error {
-	if len(customer.NIK) > 16 {
-		return fmt.Errorf("NIK must be at most 16 characters, got %d characters", len(customer.NIK))
-	}
-	if len(customer.PhoneNumber) > 15 {
-		return fmt.Errorf("phone number must be at most 15 characters, got %d characters", len(customer.PhoneNumber))
-	}
-	return nil
 }
