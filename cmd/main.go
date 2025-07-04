@@ -1,6 +1,7 @@
 package main
 
 import (
+	"car-rental/pkg/routes"
 	"log"
 	"os"
 
@@ -11,11 +12,8 @@ func main() {
 	// Initialize Gin router
 	r := gin.Default()
 
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Car Rental API",
-		})
-	})
+	// Setup routes
+	routes.SetupRoutes(r)
 
 	port := os.Getenv("PORT")
 	if port == "" {
