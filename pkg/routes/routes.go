@@ -15,6 +15,10 @@ func SetupRoutes(r *gin.Engine) {
 		customers.POST("", handlers.CreateCustomer)
 		customers.PUT("/:id", handlers.UpdateCustomer)
 		customers.DELETE("/:id", handlers.DeleteCustomer)
+
+		// Membership subscription endpoints
+		customers.PUT("/:id/subscribe/:membership_id", handlers.SubscribeToMembership)
+		customers.DELETE("/:id/unsubscribe", handlers.UnsubscribeFromMembership)
 	}
 
 	// Car routes
@@ -36,6 +40,28 @@ func SetupRoutes(r *gin.Engine) {
 		bookings.PUT("/:id", handlers.UpdateBooking)
 		bookings.DELETE("/:id", handlers.DeleteBooking)
 		bookings.PUT("/:id/finish", handlers.FinishBooking)
+
+		// Booking Type sub-routes (read-only)
+		bookings.GET("/types", handlers.GetBookingTypes)
+		bookings.GET("/types/:id", handlers.GetBookingType)
+	}
+
+	// Membership routes (read-only)
+	memberships := r.Group("/memberships")
+	{
+		memberships.GET("", handlers.GetMemberships)
+		memberships.GET("/:id", handlers.GetMembership)
+	}
+
+	// Driver routes
+	drivers := r.Group("/drivers")
+	{
+		drivers.GET("", handlers.GetDrivers)
+		drivers.GET("/:id", handlers.GetDriver)
+		drivers.POST("", handlers.CreateDriver)
+		drivers.PUT("/:id", handlers.UpdateDriver)
+		drivers.DELETE("/:id", handlers.DeleteDriver)
+		drivers.GET("/:id/incentives", handlers.GetDriverIncentives)
 	}
 
 	// Health check route
