@@ -17,12 +17,13 @@ func main() {
 
 	database.Connect()
 	database.Migrate()
+	database.SeedData()
 
 	// Set Gin mode
 	if os.Getenv("GIN_MODE") == "" {
 		gin.SetMode(gin.DebugMode)
 	}
-	
+
 	// Initialize Gin router
 	r := gin.Default()
 
