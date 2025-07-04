@@ -81,7 +81,7 @@ func UpdateDriver(c *gin.Context) {
 	}
 
 	var UpdateDriver models.Driver
-	if err := c.ShouldBindJSON(UpdateDriver); err != nil {
+	if err := c.ShouldBindJSON(&UpdateDriver); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
