@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -59,10 +60,28 @@ func Connect() {
 }
 
 func Migrate() {
+	// Check if migrations should be run
+	shouldMigrate := os.Getenv("AUTO_MIGRATE")
+	if strings.ToLower(shouldMigrate) != "true" {
+		fmt.Println("Skipping database migration based on AUTO_MIGRATE setting")
+		return
+	}
+
 	err := DB.AutoMigrate(&models.Customer{}, &models.Car{}, &models.Booking{}, &models.Membership{},
 		&models.BookingType{}, &models.DriverIncentive{}, &models.Driver{})
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
 	fmt.Println("Database migration completed")
+}
+
+// MigrateWithFeedback performs database migration and returns an error instead of fatal
+func MigrateWithFeedback() error {
+	err := DB.AutoMigrate(&models.Customer{}, &models.Car{}, &models.Booking{}, &models.Membership{},
+		&models.BookingType{}, &models.DriverIncentive{}, &models.Driver{})
+	if err != nil {
+		return fmt.Errorf("failed to migrate database: %w", err)
+	}
+	fmt.Println("Database migration completed")
+	return nil
 }
