@@ -5,6 +5,13 @@
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "46463771"
 	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "car-rental-production-03b7.up.railway.app",
+			"type": "string"
+		}
+	],
 	"item": [
 		{
 			"name": "Cust-C",
@@ -21,12 +28,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/customers",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/customers",
+					"host": ["{{base_url}}"],
 					"path": [
 						"customers"
 					]
@@ -48,12 +51,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/customers",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
+							"raw": "{{base_url}}/customers",
+							"host": ["{{base_url}}"],
 							"path": [
 								"customers"
 							]
@@ -94,12 +93,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/customers",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
+							"raw": "{{base_url}}/customers",
+							"host": ["{{base_url}}"],
 							"path": [
 								"customers"
 							]
@@ -133,12 +128,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/customers/2",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/customers/2",
+					"host": ["{{base_url}}"],
 					"path": [
 						"customers",
 						"2"
@@ -153,12 +144,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/customers",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/customers",
+					"host": ["{{base_url}}"],
 					"path": [
 						"customers"
 					]
@@ -181,12 +168,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/customers/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/customers/1",
+					"host": ["{{base_url}}"],
 					"path": [
 						"customers",
 						"1"
@@ -201,12 +184,8 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/customers/21",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/customers/21",
+					"host": ["{{base_url}}"],
 					"path": [
 						"customers",
 						"21"
@@ -230,12 +209,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/customers/1/subscribe/4",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/customers/1/subscribe/4",
+					"host": ["{{base_url}}"],
 					"path": [
 						"customers",
 						"1",
@@ -260,12 +235,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/customers/1/subscribe/1",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
+							"raw": "{{base_url}}/customers/1/subscribe/1",
+							"host": ["{{base_url}}"],
 							"path": [
 								"customers",
 								"1",
@@ -311,12 +282,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/customers/1/unsubscribe",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/customers/1/unsubscribe",
+					"host": ["{{base_url}}"],
 					"path": [
 						"customers",
 						"1",
@@ -340,12 +307,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/customers/1/unsubscribe",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
+							"raw": "{{base_url}}/customers/1/unsubscribe",
+							"host": ["{{base_url}}"],
 							"path": [
 								"customers",
 								"1",
@@ -388,12 +351,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/customers/1/unsubscribe",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
+							"raw": "{{base_url}}/customers/1/unsubscribe",
+							"host": ["{{base_url}}"],
 							"path": [
 								"customers",
 								"1",
@@ -438,12 +397,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/cars",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/cars",
+					"host": ["{{base_url}}"],
 					"path": [
 						"cars"
 					]
@@ -465,12 +420,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/cars",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
+							"raw": "{{base_url}}/cars",
+							"host": ["{{base_url}}"],
 							"path": [
 								"cars"
 							]
@@ -504,12 +455,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/cars/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/cars/1",
+					"host": ["{{base_url}}"],
 					"path": [
 						"cars",
 						"1"
@@ -524,12 +471,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/cars",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/cars",
+					"host": ["{{base_url}}"],
 					"path": [
 						"cars"
 					]
@@ -552,12 +495,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/cars/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/cars/1",
+					"host": ["{{base_url}}"],
 					"path": [
 						"cars",
 						"1"
@@ -572,58 +511,15 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/cars/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/cars/1",
+					"host": ["{{base_url}}"],
 					"path": [
 						"cars",
 						"1"
 					]
 				}
 			},
-			"response": [
-				{
-					"name": "Success",
-					"originalRequest": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/cars/16",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"cars",
-								"16"
-							]
-						}
-					},
-					"status": "OK",
-					"code": 200,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Thu, 03 Jul 2025 14:39:45 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "38"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"message\": \"Car deleted successfully\"\n}"
-				}
-			]
+			"response": []
 		},
 		{
 			"name": "Booking-C",
@@ -640,12 +536,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/bookings",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/bookings",
+					"host": ["{{base_url}}"],
 					"path": [
 						"bookings"
 					]
@@ -667,12 +559,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/bookings",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
+							"raw": "{{base_url}}/bookings",
+							"host": ["{{base_url}}"],
 							"path": [
 								"bookings"
 							]
@@ -713,12 +601,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/bookings",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
+							"raw": "{{base_url}}/bookings",
+							"host": ["{{base_url}}"],
 							"path": [
 								"bookings"
 							]
@@ -752,12 +636,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/bookings/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/bookings/1",
+					"host": ["{{base_url}}"],
 					"path": [
 						"bookings",
 						"1"
@@ -772,12 +652,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/bookings",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/bookings",
+					"host": ["{{base_url}}"],
 					"path": [
 						"bookings"
 					]
@@ -800,12 +676,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/bookings/8",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/bookings/8",
+					"host": ["{{base_url}}"],
 					"path": [
 						"bookings",
 						"8"
@@ -828,12 +700,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/bookings/8",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
+							"raw": "{{base_url}}/bookings/8",
+							"host": ["{{base_url}}"],
 							"path": [
 								"bookings",
 								"8"
@@ -875,12 +743,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/bookings/1",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
+							"raw": "{{base_url}}/bookings/1",
+							"host": ["{{base_url}}"],
 							"path": [
 								"bookings",
 								"1"
@@ -910,101 +774,46 @@
 			]
 		},
 		{
+			"name": "BookingFinish-U",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"start_rent\": \"2025-07-05T11:00:00Z\",\r\n  \"end_rent\": \"2025-07-07T11:00:00Z\",\r\n  \"total_cost\": 500000.0,\r\n  \"discount\": 50000.0,\r\n  \"total_driver_cost\": 200000.0\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/bookings/11/finish",
+					"host": ["{{base_url}}"],
+					"path": [
+						"bookings",
+						"11",
+						"finish"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Booking-D",
 			"request": {
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/bookings/9",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/bookings/9",
+					"host": ["{{base_url}}"],
 					"path": [
 						"bookings",
 						"9"
 					]
 				}
 			},
-			"response": [
-				{
-					"name": "Err: Finished",
-					"originalRequest": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/bookings/1",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"bookings",
-								"1"
-							]
-						}
-					},
-					"status": "Bad Request",
-					"code": 400,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Fri, 04 Jul 2025 12:12:06 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "44"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"error\": \"Cannot delete a finished booking\"\n}"
-				},
-				{
-					"name": "Success",
-					"originalRequest": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/bookings/9",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"bookings",
-								"9"
-							]
-						}
-					},
-					"status": "OK",
-					"code": 200,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Fri, 04 Jul 2025 12:12:47 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "42"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"message\": \"Booking deleted successfully\"\n}"
-				}
-			]
+			"response": []
 		},
 		{
 			"name": "BookingType-R-ID",
@@ -1012,12 +821,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/bookings/types/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/bookings/types/1",
+					"host": ["{{base_url}}"],
 					"path": [
 						"bookings",
 						"types",
@@ -1033,12 +838,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/bookings/types",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/bookings/types",
+					"host": ["{{base_url}}"],
 					"path": [
 						"bookings",
 						"types"
@@ -1062,12 +863,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/drivers",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/drivers",
+					"host": ["{{base_url}}"],
 					"path": [
 						"drivers"
 					]
@@ -1081,12 +878,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/drivers/2",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/drivers/2",
+					"host": ["{{base_url}}"],
 					"path": [
 						"drivers",
 						"2"
@@ -1101,12 +894,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/drivers/2/incentives",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/drivers/2/incentives",
+					"host": ["{{base_url}}"],
 					"path": [
 						"drivers",
 						"2",
@@ -1122,12 +911,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/drivers",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/drivers",
+					"host": ["{{base_url}}"],
 					"path": [
 						"drivers"
 					]
@@ -1150,12 +935,8 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/drivers/8",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/drivers/8",
+					"host": ["{{base_url}}"],
 					"path": [
 						"drivers",
 						"8"
@@ -1178,12 +959,8 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/drivers/8",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
+							"raw": "{{base_url}}/drivers/8",
+							"host": ["{{base_url}}"],
 							"path": [
 								"drivers",
 								"8"
@@ -1218,58 +995,15 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/drivers/8",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/drivers/8",
+					"host": ["{{base_url}}"],
 					"path": [
 						"drivers",
 						"8"
 					]
 				}
 			},
-			"response": [
-				{
-					"name": "Success",
-					"originalRequest": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/drivers/8",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"drivers",
-								"8"
-							]
-						}
-					},
-					"status": "OK",
-					"code": 200,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Fri, 04 Jul 2025 12:17:54 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "41"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"message\": \"Driver deleted successfully\"\n}"
-				}
-			]
+			"response": []
 		},
 		{
 			"name": "Member-R-ID",
@@ -1277,12 +1011,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/memberships/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/memberships/1",
+					"host": ["{{base_url}}"],
 					"path": [
 						"memberships",
 						"1"
@@ -1297,12 +1027,8 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/memberships",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
+					"raw": "{{base_url}}/memberships",
+					"host": ["{{base_url}}"],
 					"path": [
 						"memberships"
 					]
@@ -1312,3 +1038,4 @@
 		}
 	]
 }
+

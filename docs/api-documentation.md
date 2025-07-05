@@ -6,6 +6,7 @@ This document provides comprehensive documentation for all API endpoints in the 
 
 - [Overview](#overview)
 - [Base URL](#base-url)
+- [Postman Collection](#postman-collection)
 - [Health Check](#health-check)
 - [Customer Endpoints](#customer-endpoints)
 - [Car Endpoints](#car-endpoints)
@@ -16,7 +17,6 @@ This document provides comprehensive documentation for all API endpoints in the 
 - [Data Models](#data-models)
 - [Error Handling](#error-handling)
 - [Business Rules](#business-rules)
-- [Postman Collection](#postman-collection)
 
 ## Overview
 
@@ -53,6 +53,63 @@ Check API status and availability.
     "status": "OK"
 }
 ```
+
+---
+
+## Postman Collection
+
+The Car Rental API includes ready-to-use Postman collections to help you test and explore the API functionality.
+
+### Available Collections
+
+1. **Car Rental API v2** (Recommended)
+   - File: `docs/car-rental-v2.postman_collection.json`
+   - Features latest API endpoints with soft delete functionality
+   - Includes all entity relationships and advanced operations
+   - Organized by resource type with examples for each operation
+
+2. **Car Rental API v1** (Legacy)
+   - File: `docs/car-rental-v1.postman_collection.json`
+   - Original API endpoints without soft delete functionality
+   - Basic CRUD operations and core business logic
+
+### How to Use
+
+1. **Import the Collection**:
+   - Open Postman
+   - Click "Import" button in the top left corner
+   - Select the collection file from the `docs` folder
+   - Choose "Import" to add it to your workspace
+
+2. **Set Up Environment** (Recommended):
+   - Create a new Postman environment
+   - Click "Environment" in the sidebar, then "+" to create a new one
+   - Name your environment (e.g., "Car Rental Local")
+   - Add the following variables:
+     - `base_url`: `http://localhost:8080` for local development
+   - Click "Save" and select this environment from the dropdown in Postman
+   > Note: The default environment variable `base_url` is set to `car-rental-production-03b7.up.railway.app` for production use.
+
+3. **Running the Requests**:
+   - Start with the "Health Check" request to verify the API is running
+   - The collection is organized by resource type (Customers, Cars, etc.)
+   - For best results, follow the natural flow:
+     1. Create resources (POST requests)
+     2. Get all/individual resources (GET requests)
+     3. Update resources (PUT requests)
+     4. Run specialized operations
+     5. Delete resources (DELETE requests)
+
+4. **Testing Flow Recommendations**:
+   - Begin by creating a customer, car, and membership
+   - Subscribe the customer to a membership
+   - Create a booking using the customer and car IDs
+   - Check that car stock decreased after booking
+   - Try creating a booking with a car & driver
+   - Finish a booking to see stock return to inventory
+   - Test validation by attempting invalid operations
+
+The Postman collection provides practical examples for all API features documented in this guide.
 
 ---
 
