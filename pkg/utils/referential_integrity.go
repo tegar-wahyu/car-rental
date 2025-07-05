@@ -4,6 +4,7 @@ import (
 	"car-rental/pkg/database"
 	"car-rental/pkg/models"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -62,11 +63,11 @@ func CheckDriverBookingConstraints(driverID int) *BookingConstraintInfo {
 
 // Structured error response for FK constraint violations
 type ReferentialIntegrityError struct {
-	Message     string                 `json:"error"`
-	EntityType  string                 `json:"entity_type"`
-	EntityID    int                    `json:"entity_id"`
-	Constraint  string                 `json:"constraint"`
-	Details     map[string]interface{} `json:"details"`
+	Message    string                 `json:"error"`
+	EntityType string                 `json:"entity_type"`
+	EntityID   int                    `json:"entity_id"`
+	Constraint string                 `json:"constraint"`
+	Details    map[string]interface{} `json:"details"`
 }
 
 func RespondWithConstraintError(c *gin.Context, entityType string, entityID int, constraint string, details map[string]interface{}) {
@@ -75,8 +76,6 @@ func RespondWithConstraintError(c *gin.Context, entityType string, entityID int,
 	switch constraint {
 	case "active_bookings":
 		message = "Cannot delete " + entityType + " with active bookings. Please finish or cancel active bookings first."
-	case "booking_history":
-		message = "Cannot delete " + entityType + " with booking history. " + capitalizeFirst(entityType) + " has completed bookings in the system."
 	case "finished_booking":
 		message = "Cannot delete finished booking. Finished bookings are kept for historical records."
 	default:
@@ -84,20 +83,49 @@ func RespondWithConstraintError(c *gin.Context, entityType string, entityID int,
 	}
 
 	errorResponse := ReferentialIntegrityError{
-		Message:     message,
-		EntityType:  entityType,
-		EntityID:    entityID,
-		Constraint:  constraint,
-		Details:     details,
+		Message:    message,
+		EntityType: entityType,
+		EntityID:   entityID,
+		Constraint: constraint,
+		Details:    details,
 	}
 
 	c.JSON(http.StatusBadRequest, errorResponse)
 }
 
-// capitalizeFirst capitalizes the first letter of a string
-func capitalizeFirst(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	return string(s[0]-32) + s[1:] // Convert first char to uppercase
+
+func SoftDeleteCar(carID int) error {
+	now := time.Now()
+	return database.DB.Model(&models.Car{}).Where("no = ?", carID).Update("deleted_at", &now).Error
+}
+
+func SoftDeleteDriver(driverID int) error {
+	now := time.Now()
+	return database.DB.Model(&models.Driver{}).Where("no = ?", driverID).Update("deleted_at", &now).Error
+}
+
+func SoftDeleteDriverIncentive(incentiveID int) error {
+	now := time.Now()
+	return database.DB.Model(&models.DriverIncentive{}).Where("no = ?", incentiveID).Update("deleted_at", &now).Error
+}
+
+func SoftDeleteDriverIncentivesByBookingID(bookingID int) error {
+	now := time.Now()
+	return database.DB.Model(&models.DriverIncentive{}).Where("booking_id = ?", bookingID).Update("deleted_at", &now).Error
+}
+
+func SoftDeleteCustomer(customerID int) error {
+	now := time.Now()
+	return database.DB.Model(&models.Customer{}).Where("no = ?", customerID).Update("deleted_at", &now).Error
+}
+
+func RespondWithSoftDeleteSuccess(c *gin.Context, entityType string, entityID int) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": entityType + " has been soft deleted successfully",
+		"details": map[string]interface{}{
+			"soft_deleted_entity_id": entityID,
+			"entity_type":            entityType,
+			"deleted_at":             time.Now(),
+		},
+	})
 }
