@@ -5,6 +5,7 @@ import (
 	"car-rental/pkg/routes"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -22,10 +23,25 @@ func main() {
 	// Set Gin mode
 	if os.Getenv("GIN_MODE") == "" {
 		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(os.Getenv("GIN_MODE"))
 	}
 
 	// Initialize Gin router
 	r := gin.Default()
+
+	// Configure trusted proxies
+	trustedProxies := os.Getenv("TRUSTED_PROXIES")
+	if trustedProxies == "" {
+		// If not specified, only trust localhost/loopback addresses
+		r.SetTrustedProxies([]string{"127.0.0.1", "::1"})
+	} else if strings.ToLower(trustedProxies) == "nil" || strings.ToLower(trustedProxies) == "none" {
+		// Disable trusted proxies completely
+		r.SetTrustedProxies(nil)
+	} else {
+		// Use the provided list of trusted proxies
+		r.SetTrustedProxies(strings.Split(trustedProxies, ","))
+	}
 
 	// Setup routes
 	routes.SetupRoutes(r)
