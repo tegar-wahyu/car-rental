@@ -27,7 +27,12 @@ The Car Rental API provides complete CRUD operations for managing customers, car
 ## Base URL
 
 ```
-http://localhost:8080
+http://localhost:8080/api/v1
+```
+
+For health checks:
+```
+http://localhost:8080/health
 ```
 
 ---
@@ -49,7 +54,7 @@ Check API status and availability.
 
 ## Customer Endpoints
 
-### GET /customers
+### GET /api/v1/customers
 Retrieve all customers.
 
 **Success Response (200 OK):**
@@ -86,7 +91,7 @@ Retrieve all customers.
 }
 ```
 
-### GET /customers/:id
+### GET /api/v1/customers/:id
 Retrieve a specific customer by ID.
 
 **URL Parameters:**
@@ -117,7 +122,7 @@ Retrieve a specific customer by ID.
 }
 ```
 
-### POST /customers
+### POST /api/v1/customers
 Create a new customer.
 
 **Request Body:**
@@ -164,7 +169,7 @@ Create a new customer.
 }
 ```
 
-### PUT /customers/:id
+### PUT /api/v1/customers/:id
 Update an existing customer.
 
 **URL Parameters:**
@@ -209,7 +214,7 @@ Update an existing customer.
 }
 ```
 
-### DELETE /customers/:id
+### DELETE /api/v1/customers/:id
 Delete a customer.
 
 **URL Parameters:**
@@ -244,7 +249,7 @@ Delete a customer.
 
 ## Car Endpoints
 
-### GET /cars
+### GET /api/v1/cars
 Retrieve all cars.
 
 **Success Response (200 OK):**
@@ -275,7 +280,7 @@ Retrieve all cars.
 }
 ```
 
-### GET /cars/:id
+### GET /api/v1/cars/:id
 Retrieve a specific car by ID.
 
 **URL Parameters:**
@@ -306,7 +311,7 @@ Retrieve a specific car by ID.
 }
 ```
 
-### POST /cars
+### POST /api/v1/cars
 Create a new car.
 
 **Request Body:**
@@ -353,8 +358,8 @@ Create a new car.
 }
 ```
 
-### PUT /cars/:id
-Update an existing car.
+### PUT /api/v1/cars/:id
+Update a specific car.
 
 **URL Parameters:**
 - `id` (integer) - Car ID
@@ -398,8 +403,8 @@ Update an existing car.
 }
 ```
 
-### DELETE /cars/:id
-Delete a car.
+### DELETE /api/v1/cars/:id
+Delete a specific car.
 
 **URL Parameters:**
 - `id` (integer) - Car ID
@@ -433,7 +438,7 @@ Delete a car.
 
 ## Booking Endpoints
 
-### GET /bookings
+### GET /api/v1/bookings
 Retrieve all bookings with customer and car details.
 
 **Success Response (200 OK):**
@@ -494,7 +499,7 @@ Retrieve all bookings with customer and car details.
 }
 ```
 
-### GET /bookings/:id
+### GET /api/v1/bookings/:id
 Retrieve a specific booking by ID.
 
 **URL Parameters:**
@@ -540,7 +545,7 @@ Retrieve a specific booking by ID.
 }
 ```
 
-### POST /bookings
+### POST /api/v1/bookings
 Create a new booking.
 
 **Request Body:**
@@ -629,7 +634,7 @@ Create a new booking.
 - Car stock decremented by 1
 - Booking marked as `finished: false`
 
-### PUT /bookings/:id
+### PUT /api/v1/bookings/:id
 Update an existing booking.
 
 **URL Parameters:**
@@ -702,7 +707,7 @@ Update an existing booking.
 - Cannot update finished bookings
 - Date changes trigger cost recalculation
 
-### DELETE /bookings/:id
+### DELETE /api/v1/bookings/:id
 Delete a booking.
 
 **URL Parameters:**
@@ -742,7 +747,7 @@ Delete a booking.
 - Car stock restored (incremented by 1)
 - Only applies to non-finished bookings
 
-### PUT /bookings/:id/finish
+### PUT /api/v1/bookings/:id/finish
 Mark a booking as finished.
 
 **URL Parameters:**
