@@ -53,6 +53,14 @@ go run cmd/main.go
 
 The API will be available at `http://localhost:8080`
 
+### Production Environment
+
+The production version of this API is deployed and available at:
+
+```
+https://car-rental-production-03b7.up.railway.app
+```
+
 ## 📋 API Endpoints
 
 ### Health Check
