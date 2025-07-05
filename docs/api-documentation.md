@@ -115,7 +115,7 @@ The Postman collection provides practical examples for all API features document
 
 ## Customer Endpoints
 
-### GET /customers
+### GET /api/v2/customers
 Retrieve all customers.
 
 **Success Response (200 OK):**
@@ -152,7 +152,7 @@ Retrieve all customers.
 }
 ```
 
-### GET /customers/:id
+### GET /api/v2/customers/:id
 Retrieve a specific customer by ID.
 
 **URL Parameters:**
@@ -183,7 +183,7 @@ Retrieve a specific customer by ID.
 }
 ```
 
-### POST /customers
+### POST /api/v2/customers
 Create a new customer.
 
 **Request Body:**
@@ -230,7 +230,7 @@ Create a new customer.
 }
 ```
 
-### PUT /customers/:id
+### PUT /api/v2/customers/:id
 Update an existing customer.
 
 **URL Parameters:**
@@ -275,7 +275,7 @@ Update an existing customer.
 }
 ```
 
-### DELETE /customers/:id
+### DELETE /api/v2/customers/:id
 Soft delete a customer. Preserves historical data while hiding the customer from future queries.
 
 **URL Parameters:**
@@ -318,7 +318,7 @@ Soft delete a customer. Preserves historical data while hiding the customer from
 }
 ```
 
-### PUT /customers/:id/subscribe/:membership_id
+### PUT /api/v2/customers/:id/subscribe/:membership_id
 Subscribe a customer to a membership plan.
 
 **URL Parameters:**
@@ -371,7 +371,7 @@ Subscribe a customer to a membership plan.
 }
 ```
 
-### DELETE /customers/:id/unsubscribe
+### DELETE /api/v2/customers/:id/unsubscribe
 Remove a customer's membership subscription.
 
 **URL Parameters:**
@@ -413,7 +413,7 @@ Remove a customer's membership subscription.
 
 ## Car Endpoints
 
-### GET /cars
+### GET /api/v2/cars
 Retrieve all cars.
 
 **Success Response (200 OK):**
@@ -444,7 +444,7 @@ Retrieve all cars.
 }
 ```
 
-### GET /cars/:id
+### GET /api/v2/cars/:id
 Retrieve a specific car by ID.
 
 **URL Parameters:**
@@ -475,7 +475,7 @@ Retrieve a specific car by ID.
 }
 ```
 
-### POST /cars
+### POST /api/v2/cars
 Create a new car.
 
 **Request Body:**
@@ -522,7 +522,7 @@ Create a new car.
 }
 ```
 
-### PUT /cars/:id
+### PUT /api/v2/cars/:id
 Update an existing car.
 
 **URL Parameters:**
@@ -567,7 +567,7 @@ Update an existing car.
 }
 ```
 
-### DELETE /cars/:id
+### DELETE /api/v2/cars/:id
 Soft delete a car. Preserves historical data while hiding the car from future queries.
 
 **URL Parameters:**
@@ -619,7 +619,7 @@ Soft delete a car. Preserves historical data while hiding the car from future qu
 
 ## Booking Endpoints
 
-### GET /bookings
+### GET /api/v2/bookings
 Retrieve all bookings with customer and car details.
 
 **Success Response (200 OK):**
@@ -705,7 +705,7 @@ Retrieve all bookings with customer and car details.
 }
 ```
 
-### GET /bookings/:id
+### GET /api/v2/bookings/:id
 Retrieve a specific booking by ID.
 
 **URL Parameters:**
@@ -751,7 +751,7 @@ Retrieve a specific booking by ID.
 }
 ```
 
-### POST /bookings
+### POST /api/v2/bookings
 Create a new booking.
 
 **Request Body:**
@@ -883,7 +883,7 @@ Create a new booking.
 - Car stock decremented by 1
 - Booking marked as `finished: false`
 
-### PUT /bookings/:id
+### PUT /api/v2/bookings/:id
 Update an existing booking.
 
 **URL Parameters:**
@@ -956,7 +956,7 @@ Update an existing booking.
 - Cannot update finished bookings
 - Date changes trigger cost recalculation
 
-### DELETE /bookings/:id
+### DELETE /api/v2/bookings/:id
 Delete a booking.
 
 **URL Parameters:**
@@ -1012,7 +1012,7 @@ Delete a booking.
 - Car stock restored (incremented by 1)
 - Only applies to non-finished bookings
 
-### PUT /bookings/:id/finish
+### PUT /api/v2/bookings/:id/finish
 Mark a booking as finished.
 
 **URL Parameters:**
@@ -1081,7 +1081,7 @@ Mark a booking as finished.
 
 **Note:** Membership endpoints are read-only. Memberships are managed by the system and cannot be created, updated, or deleted via the API. Customers can subscribe to existing memberships using the customer subscription endpoints.
 
-### GET /memberships
+### GET /api/v2/memberships
 Retrieve all memberships.
 
 **Success Response (200 OK):**
@@ -1115,7 +1115,7 @@ Retrieve all memberships.
 }
 ```
 
-### GET /memberships/:id
+### GET /api/v2/memberships/:id
 Retrieve a specific membership by ID.
 
 **URL Parameters:**
@@ -1149,7 +1149,7 @@ Retrieve a specific membership by ID.
 
 ## Driver Endpoints
 
-### GET /drivers
+### GET /api/v2/drivers
 Retrieve all drivers.
 
 **Success Response (200 OK):**
@@ -1189,7 +1189,7 @@ Retrieve all drivers.
 }
 ```
 
-### GET /drivers/:id
+### GET /api/v2/drivers/:id
 Retrieve a specific driver by ID.
 
 **URL Parameters:**
@@ -1221,7 +1221,7 @@ Retrieve a specific driver by ID.
 }
 ```
 
-### POST /drivers
+### POST /api/v2/drivers
 Create a new driver.
 
 **Request Body:**
@@ -1276,7 +1276,7 @@ Create a new driver.
 }
 ```
 
-### PUT /drivers/:id
+### PUT /api/v2/drivers/:id
 Update an existing driver.
 
 **URL Parameters:**
@@ -1323,7 +1323,7 @@ Update an existing driver.
 }
 ```
 
-### DELETE /drivers/:id
+### DELETE /api/v2/drivers/:id
 Soft delete a driver. Preserves historical data while hiding the driver from future queries.
 
 **URL Parameters:**
@@ -1371,7 +1371,7 @@ Soft delete a driver. Preserves historical data while hiding the driver from fut
 }
 ```
 
-### GET /drivers/:id/incentives
+### GET /api/v2/drivers/:id/incentives
 Retrieve driver incentives for a specific driver.
 
 **URL Parameters:**
@@ -1454,7 +1454,7 @@ Retrieve driver incentives for a specific driver.
 
 **Note:** Booking type endpoints are read-only and accessed via `/bookings/types`. Booking types are managed by the system and cannot be created, updated, or deleted via the API.
 
-### GET /bookings/types
+### GET /api/v2/bookings/types
 Retrieve all booking types.
 
 **Success Response (200 OK):**
@@ -1483,7 +1483,7 @@ Retrieve all booking types.
 }
 ```
 
-### GET /bookings/types/:id
+### GET /api/v2/bookings/types/:id
 Retrieve a specific booking type by ID.
 
 **URL Parameters:**

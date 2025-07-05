@@ -7,8 +7,11 @@ import (
 )
 
 func SetupRoutes(r *gin.Engine) {
+	// Create API v2 group
+	v2 := r.Group("/api/v2")
+
 	// Customer routes
-	customers := r.Group("/customers")
+	customers := v2.Group("/customers")
 	{
 		customers.GET("", handlers.GetCustomers)
 		customers.GET("/:id", handlers.GetCustomer)
@@ -22,7 +25,7 @@ func SetupRoutes(r *gin.Engine) {
 	}
 
 	// Car routes
-	cars := r.Group("/cars")
+	cars := v2.Group("/cars")
 	{
 		cars.GET("", handlers.GetCars)
 		cars.GET("/:id", handlers.GetCar)
@@ -32,7 +35,7 @@ func SetupRoutes(r *gin.Engine) {
 	}
 
 	// Booking routes
-	bookings := r.Group("/bookings")
+	bookings := v2.Group("/bookings")
 	{
 		bookings.GET("", handlers.GetBookings)
 		bookings.GET("/:id", handlers.GetBooking)
@@ -47,14 +50,14 @@ func SetupRoutes(r *gin.Engine) {
 	}
 
 	// Membership routes (read-only)
-	memberships := r.Group("/memberships")
+	memberships := v2.Group("/memberships")
 	{
 		memberships.GET("", handlers.GetMemberships)
 		memberships.GET("/:id", handlers.GetMembership)
 	}
 
 	// Driver routes
-	drivers := r.Group("/drivers")
+	drivers := v2.Group("/drivers")
 	{
 		drivers.GET("", handlers.GetDrivers)
 		drivers.GET("/:id", handlers.GetDriver)
