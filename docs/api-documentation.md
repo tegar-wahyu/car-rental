@@ -31,6 +31,7 @@ The Car Rental API provides complete CRUD operations for managing customers, car
 - **Constraint-Based Validation** - Advanced referential integrity checking with detailed error responses
 - **Data Validation** - Input validation with detailed error messages
 - **Relationship Management** - Comprehensive foreign key handling and constraints
+- **Soft Delete** - Preserves historical data for customers, cars, and drivers while hiding them from future queries
 
 ## Base URL
 
@@ -218,7 +219,7 @@ Update an existing customer.
 ```
 
 ### DELETE /customers/:id
-Delete a customer.
+Soft delete a customer. Preserves historical data while hiding the customer from future queries.
 
 **URL Parameters:**
 - `id` (integer) - Customer ID
@@ -226,7 +227,12 @@ Delete a customer.
 **Success Response (200 OK):**
 ```json
 {
-    "message": "Customer deleted successfully"
+    "message": "customer has been soft deleted successfully",
+    "details": {
+        "soft_deleted_entity_id": 1,
+        "entity_type": "customer",
+        "deleted_at": "2025-07-05T12:34:56.789Z"
+    }
 }
 ```
 
@@ -251,18 +257,6 @@ Delete a customer.
     "details": {
         "active_bookings": 2,
         "total_bookings": 5
-    }
-}
-
-// 400 Bad Request - Customer has booking history  
-{
-    "error": "Cannot delete customer with booking history. Customer has completed bookings in the system.",
-    "entity_type": "customer", 
-    "entity_id": 1,
-    "constraint": "booking_history",
-    "details": {
-        "active_bookings": 0,
-        "total_bookings": 3
     }
 }
 ```
@@ -517,7 +511,7 @@ Update an existing car.
 ```
 
 ### DELETE /cars/:id
-Delete a car.
+Soft delete a car. Preserves historical data while hiding the car from future queries.
 
 **URL Parameters:**
 - `id` (integer) - Car ID
@@ -525,7 +519,12 @@ Delete a car.
 **Success Response (200 OK):**
 ```json
 {
-    "message": "Car deleted successfully"
+    "message": "car has been soft deleted successfully",
+    "details": {
+        "soft_deleted_entity_id": 1,
+        "entity_type": "car",
+        "deleted_at": "2025-07-05T12:34:56.789Z"
+    }
 }
 ```
 
@@ -550,18 +549,6 @@ Delete a car.
     "details": {
         "active_bookings": 1,
         "total_bookings": 5
-    }
-}
-
-// 400 Bad Request - Car has booking history
-{
-    "error": "Cannot delete car with booking history. Car has completed bookings in the system.",
-    "entity_type": "car",
-    "entity_id": 1,
-    "constraint": "booking_history", 
-    "details": {
-        "active_bookings": 0,
-        "total_bookings": 3
     }
 }
 
@@ -1280,7 +1267,7 @@ Update an existing driver.
 ```
 
 ### DELETE /drivers/:id
-Delete a driver.
+Soft delete a driver. Preserves historical data while hiding the driver from future queries.
 
 **URL Parameters:**
 - `id` (integer) - Driver ID
@@ -1288,7 +1275,12 @@ Delete a driver.
 **Success Response (200 OK):**
 ```json
 {
-    "message": "Driver deleted successfully"
+    "message": "driver has been soft deleted successfully",
+    "details": {
+        "soft_deleted_entity_id": 1,
+        "entity_type": "driver",
+        "deleted_at": "2025-07-05T12:34:56.789Z"
+    }
 }
 ```
 
@@ -1313,18 +1305,6 @@ Delete a driver.
     "details": {
         "active_bookings": 2,
         "total_bookings": 10
-    }
-}
-
-// 400 Bad Request - Driver has booking history
-{
-    "error": "Cannot delete driver with booking history. Driver has completed bookings in the system.",
-    "entity_type": "driver",
-    "entity_id": 1,
-    "constraint": "booking_history",
-    "details": {
-        "active_bookings": 0,
-        "total_bookings": 5
     }
 }
 
@@ -1488,6 +1468,7 @@ Retrieve a specific booking type by ID.
 | `name` | string | ✅ | Not null | Customer's full name |
 | `nik` | string | ✅ | Exactly 16 chars, Unique, Not null | National identification number |
 | `phone_number` | string | ✅ | Max 15 chars, Not null | Customer's contact phone number |
+| `deleted_at` | datetime | - | Nullable, Indexed | Timestamp when customer was soft deleted |
 | `membership_id` | integer | - | Foreign Key to Membership, Nullable | Reference to membership plan |
 | `membership` | object | - | Populated when preloaded | Membership details object |
 
@@ -1499,6 +1480,7 @@ Retrieve a specific booking type by ID.
 | `name` | string | ✅ | Not null | Car model/name |
 | `stock` | integer | ✅ | Min 0, Not null | Number of available cars |
 | `daily_rent` | float | ✅ | Min 0, Not null | Daily rental price |
+| `deleted_at` | datetime | - | Nullable, Indexed | Timestamp when car was soft deleted |
 
 ### Booking Model
 
@@ -1532,7 +1514,17 @@ Retrieve a specific booking type by ID.
 | `name` | string | ✅ | Not null | Driver's full name |
 | `nik` | string | ✅ | Exactly 16 chars, Unique, Not null | National identification number |
 | `phone_number` | string | ✅ | Max 15 chars, Not null | Driver's contact phone number |
-| `daily_cost` | float | ✅ | Min 0, Not null | Driver's daily cost |
+| `daily_cost` | float | ✅ | Min 0, Not null | Daily cost for driver services |
+| `deleted_at` | datetime | - | Nullable, Indexed | Timestamp when driver was soft deleted |
+
+### Driver Incentive Model
+
+| Field | Type | Required | Constraints | Description |
+|-------|------|----------|-------------|-------------|
+| `no` | integer | - | Auto-generated, Primary Key | Unique incentive identifier |
+| `booking_id` | integer | ✅ | Foreign key, Not null | Reference to Booking.no |
+| `incentive` | float | ✅ | Not null | Incentive amount |
+| `deleted_at` | datetime | - | Nullable, Indexed | Timestamp when incentive was soft deleted |
 
 ### Booking Type Model
 
@@ -1582,17 +1574,19 @@ Constraint-based error responses (for deletion operations) follow this enhanced 
 
 **Customer Errors:**
 - `"Invalid customer ID"` - ID parameter is not a valid integer
-- `"Customer not found"` - Customer doesn't exist
+- `"Customer not found"` - Customer doesn't exist or has been soft-deleted
+- `"Customer not found or has been removed"` - Customer reference is invalid (doesn't exist or soft-deleted)
 - `"Failed to create customer"` - Database error (often duplicate NIK)
 - `"Cannot delete customer with active bookings..."` - Customer has active bookings
-- `"Cannot delete customer with booking history..."` - Customer has completed bookings
+- `"Failed to soft delete customer"` - Database error during soft delete
 
 **Car Errors:**
 - `"Invalid car ID"` - ID parameter is not a valid integer
-- `"Car not found"` - Car doesn't exist
+- `"Car not found"` - Car doesn't exist or has been soft-deleted
+- `"Car not found or has been removed"` - Car reference is invalid (doesn't exist or soft-deleted)
 - `"Failed to create car"` - Database error
 - `"Cannot delete car with active bookings..."` - Car has active bookings
-- `"Cannot delete car with booking history..."` - Car has completed bookings
+- `"Failed to soft delete car"` - Database error during soft delete
 
 **Booking Errors:**
 - `"Invalid booking ID"` - ID parameter is not a valid integer
@@ -1613,10 +1607,11 @@ Constraint-based error responses (for deletion operations) follow this enhanced 
 
 **Driver Errors:**
 - `"Invalid driver ID"` - ID parameter is not a valid integer
-- `"Driver not found"` - Driver doesn't exist
+- `"Driver not found"` - Driver doesn't exist or has been soft-deleted
+- `"Driver not found or has been removed"` - Driver reference is invalid (doesn't exist or soft-deleted)
 - `"Failed to create driver"` - Database error (often duplicate NIK)
 - `"Cannot delete driver with active bookings..."` - Driver has active bookings
-- `"Cannot delete driver with booking history..."` - Driver has completed bookings
+- `"Failed to soft delete driver"` - Database error during soft delete
 
 **Booking Type Errors:**
 - `"Invalid booking type ID"` - ID parameter is not a valid integer
@@ -1676,10 +1671,11 @@ Constraint-based error responses (for deletion operations) follow this enhanced 
 - Driver validation based on booking type
 
 ### Foreign Key Constraints & Referential Integrity
-- **Customers**: Cannot be deleted if they have active bookings; deletion blocked if they have any booking history
-- **Cars**: Cannot be deleted if they have active bookings; deletion blocked if they have any booking history  
-- **Drivers**: Cannot be deleted if they have active bookings; deletion blocked if they have any booking history
+- **Customers**: Cannot be deleted if they have active bookings; uses soft delete to preserve history
+- **Cars**: Cannot be deleted if they have active bookings; uses soft delete to preserve history  
+- **Drivers**: Cannot be deleted if they have active bookings; uses soft delete to preserve history
 - **Bookings**: Cannot be deleted if marked as finished (kept for historical records)
+- **Driver Incentives**: Soft deleted along with drivers to maintain data consistency
 - **Memberships & Booking Types**: Read-only via API, managed by system
 - All booking operations validate that referenced customers, cars, drivers, and booking types exist
 - Constraint violations return detailed error responses with entity information and suggested actions
@@ -1688,1023 +1684,29 @@ Constraint-based error responses (for deletion operations) follow this enhanced 
 - `finished: false` - Active booking, car currently rented
 - `finished: true` - Completed booking, car returned and stock restored
 
-## Postman Collection
+### Soft Delete Implementation
 
-You can import the following Postman collection JSON to test the API endpoints:
+The system implements soft delete for the following entities to preserve historical data:
 
-```json
-{
-	"info": {
-		"_postman_id": "5281864f-0c0a-4761-bb4b-bb3dd201d413",
-		"name": "car-rental-v2",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "46463771"
-	},
-	"item": [
-		{
-			"name": "Cust-C",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Tegar Wahyu\",\r\n  \"nik\": \"1234567890123436\",\r\n  \"phone_number\": \"081234567890\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/customers",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"customers"
-					]
-				}
-			},
-			"response": [
-				{
-					"name": "Success",
-					"originalRequest": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"name\": \"Tegar Wahyu\",\r\n  \"nik\": \"1234567890123456\",\r\n  \"phone_number\": \"081234567890\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8080/customers",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"customers"
-							]
-						}
-					},
-					"status": "Created",
-					"code": 201,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Thu, 03 Jul 2025 13:06:37 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "94"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"data\": {\n        \"no\": 22,\n        \"name\": \"Tegar Wahyu\",\n        \"nik\": \"1234567890123456\",\n        \"phone_number\": \"081234567890\"\n    }\n}"
-				},
-				{
-					"name": "Err-Empty Field",
-					"originalRequest": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"name\": \"\",\r\n  \"nik\": \"1234567890123456\",\r\n  \"phone_number\": \"081234567890\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8080/customers",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"customers"
-							]
-						}
-					},
-					"status": "Bad Request",
-					"code": 400,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Thu, 03 Jul 2025 13:07:40 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "95"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"error\": \"Key: 'Customer.Name' Error:Field validation for 'Name' failed on the 'required' tag\"\n}"
-				}
-			]
-		},
-		{
-			"name": "Cust-R-ID",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8080/customers/2",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"customers",
-						"2"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Cust-R-All",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8080/customers",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"customers"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Cust-U",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Wawan Hermawan - Updated\",\r\n  \"nik\": \"3372093912739\",\r\n  \"phone_number\": \"081237123682\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/customers/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"customers",
-						"1"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Cust-D",
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8080/customers/21",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"customers",
-						"21"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Subscribe-U",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Wawan Hermawan - Updated\",\r\n  \"nik\": \"3372093912739\",\r\n  \"phone_number\": \"081237123682\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/customers/1/subscribe/4",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"customers",
-						"1",
-						"subscribe",
-						"4"
-					]
-				}
-			},
-			"response": [
-				{
-					"name": "Success",
-					"originalRequest": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"name\": \"Wawan Hermawan - Updated\",\r\n  \"nik\": \"3372093912739\",\r\n  \"phone_number\": \"081237123682\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8080/customers/1/subscribe/1",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"customers",
-								"1",
-								"subscribe",
-								"1"
-							]
-						}
-					},
-					"status": "OK",
-					"code": 200,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Fri, 04 Jul 2025 12:19:11 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "223"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"data\": {\n        \"no\": 1,\n        \"name\": \"Wawan Hermawan\",\n        \"nik\": \"3372093912739\",\n        \"phone_number\": \"081237123682\",\n        \"membership_id\": 1,\n        \"membership\": {\n            \"no\": 1,\n            \"membership_name\": \"Bronze\",\n            \"discount\": 4\n        }\n    },\n    \"message\": \"Successfully subscribed to membership\"\n}"
-				}
-			]
-		},
-		{
-			"name": "CustUnsubscribe-D",
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"Wawan Hermawan - Updated\",\r\n  \"nik\": \"3372093912739\",\r\n  \"phone_number\": \"081237123682\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/customers/1/unsubscribe",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"customers",
-						"1",
-						"unsubscribe"
-					]
-				}
-			},
-			"response": [
-				{
-					"name": "Success",
-					"originalRequest": {
-						"method": "DELETE",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"name\": \"Wawan Hermawan - Updated\",\r\n  \"nik\": \"3372093912739\",\r\n  \"phone_number\": \"081237123682\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8080/customers/1/unsubscribe",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"customers",
-								"1",
-								"unsubscribe"
-							]
-						}
-					},
-					"status": "OK",
-					"code": 200,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Fri, 04 Jul 2025 12:18:55 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "168"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"data\": {\n        \"no\": 1,\n        \"name\": \"Wawan Hermawan\",\n        \"nik\": \"3372093912739\",\n        \"phone_number\": \"081237123682\",\n        \"membership_id\": null\n    },\n    \"message\": \"Successfully unsubscribed from membership\"\n}"
-				},
-				{
-					"name": "Err: not subscribed",
-					"originalRequest": {
-						"method": "DELETE",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"name\": \"Wawan Hermawan - Updated\",\r\n  \"nik\": \"3372093912739\",\r\n  \"phone_number\": \"081237123682\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8080/customers/1/unsubscribe",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"customers",
-								"1",
-								"unsubscribe"
-							]
-						}
-					},
-					"status": "Bad Request",
-					"code": 400,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Fri, 04 Jul 2025 12:19:38 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "56"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"error\": \"Customer is not subscribed to any membership\"\n}"
-				}
-			]
-		},
-		{
-			"name": "Car-C",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"name\": \"BMW M3\",\r\n  \"stock\": 2,\r\n  \"daily_rent\": 900000\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/cars",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"cars"
-					]
-				}
-			},
-			"response": [
-				{
-					"name": "Success",
-					"originalRequest": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"name\": \"BMW M3\",\r\n  \"stock\": 2,\r\n  \"daily_rent\": 900000\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8080/cars",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"cars"
-							]
-						}
-					},
-					"status": "Created",
-					"code": 201,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Thu, 03 Jul 2025 14:15:18 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "64"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"data\": {\n        \"no\": 16,\n        \"name\": \"BMW M3\",\n        \"stock\": 2,\n        \"daily_rent\": 900000\n    }\n}"
-				}
-			]
-		},
-		{
-			"name": "Car-R-ID",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8080/cars/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"cars",
-						"1"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Car-R-All",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8080/cars",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"cars"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Car-U",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"name\": \"Toyota Camry - Updated\",\r\n    \"stock\": 2,\r\n    \"daily_rent\": 500000\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/cars/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"cars",
-						"1"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Car-D",
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8080/cars/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"cars",
-						"1"
-					]
-				}
-			},
-			"response": [
-				{
-					"name": "Success",
-					"originalRequest": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/cars/16",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"cars",
-								"16"
-							]
-						}
-					},
-					"status": "OK",
-					"code": 200,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Thu, 03 Jul 2025 14:39:45 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "38"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"message\": \"Car deleted successfully\"\n}"
-				}
-			]
-		},
-		{
-			"name": "Booking-C",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"customer_id\": 1,\r\n  \"cars_id\": 2,\r\n  \"start_rent\": \"2025-07-05T10:00:00Z\",\r\n  \"end_rent\": \"2025-07-07T10:00:00Z\",\r\n  \"booking_type_id\": 2,\r\n  \"driver_id\": 3\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/bookings",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"bookings"
-					]
-				}
-			},
-			"response": [
-				{
-					"name": "Success",
-					"originalRequest": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"customer_id\": 1,\r\n  \"cars_id\": 2,\r\n  \"start_rent\": \"2025-07-05T10:00:00Z\",\r\n  \"end_rent\": \"2025-07-07T10:00:00Z\",\r\n  \"booking_type_id\": 2,\r\n  \"driver_id\": 3\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8080/bookings",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"bookings"
-							]
-						}
-					},
-					"status": "Created",
-					"code": 201,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Fri, 04 Jul 2025 12:08:39 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "688"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"data\": {\n        \"no\": 9,\n        \"customer_id\": 1,\n        \"cars_id\": 2,\n        \"start_rent\": \"2025-07-05T10:00:00Z\",\n        \"end_rent\": \"2025-07-07T10:00:00Z\",\n        \"total_cost\": 1500000,\n        \"finished\": false,\n        \"discount\": 60000,\n        \"booking_type_id\": 2,\n        \"driver_id\": 3,\n        \"total_driver_cost\": 450000,\n        \"customer\": {\n            \"no\": 1,\n            \"name\": \"Wawan Hermawan\",\n            \"nik\": \"3372093912739\",\n            \"phone_number\": \"081237123682\",\n            \"membership_id\": 1,\n            \"membership\": {\n                \"no\": 1,\n                \"membership_name\": \"Bronze\",\n                \"discount\": 4\n            }\n        },\n        \"car\": {\n            \"no\": 2,\n            \"name\": \"Toyota Avalon\",\n            \"stock\": 1,\n            \"daily_rent\": 500000\n        },\n        \"driver\": {\n            \"no\": 3,\n            \"name\": \"Kingsley Alvarez\",\n            \"nik\": \"3220132938313\",\n            \"phone_number\": \"081992048714\",\n            \"daily_cost\": 150000\n        },\n        \"booking_type\": {\n            \"no\": 2,\n            \"booking_type\": \"Car & Driver\",\n            \"description\": \"Rent Car and a Driver\"\n        }\n    }\n}"
-				},
-				{
-					"name": "Err: Mismatch",
-					"originalRequest": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"customer_id\": 1,\r\n  \"cars_id\": 2,\r\n  \"start_rent\": \"2025-07-05T10:00:00Z\",\r\n  \"end_rent\": \"2025-07-07T10:00:00Z\",\r\n  \"booking_type_id\": 1,\r\n  \"driver_id\": 3\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8080/bookings",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"bookings"
-							]
-						}
-					},
-					"status": "Bad Request",
-					"code": 400,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Fri, 04 Jul 2025 12:09:34 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "76"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"error\": \"Driver can only be assigned for 'Car & Driver' booking type\"\n}"
-				}
-					]
-		},
-		{
-			"name": "Booking-R-ID",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8080/bookings/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"bookings",
-						"1"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Booking-R-All",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8080/bookings",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"bookings"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Booking-U",
-			"request": {
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"start_rent\": \"2025-07-05T11:00:00Z\",\r\n  \"end_rent\": \"2025-07-07T11:00:00Z\",\r\n  \"total_cost\": 500000.0,\r\n  \"discount\": 50000.0,\r\n  \"total_driver_cost\": 200000.0\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/bookings/8",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"bookings",
-						"8"
-					]
-				}
-			},
-			"response": [
-				{
-					"name": "Success",
-					"originalRequest": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"start_rent\": \"2025-07-05T11:00:00Z\",\r\n  \"end_rent\": \"2025-07-07T11:00:00Z\",\r\n  \"total_cost\": 500000.0,\r\n  \"discount\": 50000.0,\r\n  \"total_driver_cost\": 200000.0\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8080/bookings/8",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"bookings",
-								"8"
-							]
-						}
-					},
-					"status": "OK",
-					"code": 200,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Fri, 04 Jul 2025 12:10:45 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "681"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"data\": {\n        \"no\": 8,\n        \"customer_id\": 2,\n        \"cars_id\": 8,\n        \"start_rent\": \"2025-07-05T11:00:00Z\",\n        \"end_rent\": \"2025-07-07T11:00:00Z\",\n        \"total_cost\": 1500000,\n        \"finished\": false,\n        \"discount\": 225000,\n        \"booking_type_id\": 2,\n        \"driver_id\": 7,\n        \"total_driver_cost\": 420000,\n        \"customer\": {\n            \"no\": 2,\n            \"name\": \"Philip Walker\",\n            \"nik\": \"3372093912785\",\n            \"phone_number\": \"081237123683\",\n            \"membership_id\": 3,\n            \"membership\": {\n                \"no\": 3,\n                \"membership_name\": \"Gold\",\n                \"discount\": 15\n            }\n        },\n        \"car\": {\n            \"no\": 8,\n            \"name\": \"Honda Brio\",\n            \"stock\": 3,\n            \"daily_rent\": 500000\n        },\n        \"driver\": {\n            \"no\": 7,\n            \"name\": \"Zach Reynolds\",\n            \"nik\": \"3220132938375\",\n            \"phone_number\": \"081992048718\",\n            \"daily_cost\": 140000\n        },\n        \"booking_type\": {\n            \"no\": 2,\n            \"booking_type\": \"Car & Driver\",\n            \"description\": \"Rent Car and a Driver\"\n        }\n    }\n}"
-				},
-				{
-					"name": "Err: Finished",
-					"originalRequest": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n  \"start_rent\": \"2025-07-05T11:00:00Z\",\r\n  \"end_rent\": \"2025-07-07T11:00:00Z\",\r\n  \"total_cost\": 500000.0,\r\n  \"discount\": 50000.0,\r\n  \"total_driver_cost\": 200000.0\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "http://localhost:8080/bookings/1",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"bookings",
-								"1"
-							]
-						}
-					},
-					"status": "Bad Request",
-					"code": 400,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Fri, 04 Jul 2025 12:11:06 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "44"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"error\": \"Cannot update a finished booking\"\n}"
-				}
-			]
-		},
-		{
-			"name": "Booking-D",
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8080/bookings/9",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"bookings",
-						"9"
-					]
-				}
-			},
-			"response": [
-				{
-					"name": "Err: Finished",
-					"originalRequest": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/bookings/1",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"bookings",
-								"1"
-							]
-						}
-					},
-					"status": "Bad Request",
-					"code": 400,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Fri, 04 Jul 2025 12:12:06 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "44"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"error\": \"Cannot delete a finished booking\"\n}"
-				},
-				{
-					"name": "Success",
-					"originalRequest": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:8080/bookings/9",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "8080",
-							"path": [
-								"bookings",
-								"9"
-							]
-						}
-					},
-					"status": "OK",
-					"code": 200,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json; charset=utf-8"
-						},
-						{
-							"key": "Date",
-							"value": "Fri, 04 Jul 2025 12:12:47 GMT"
-						},
-						{
-							"key": "Content-Length",
-							"value": "42"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"message\": \"Booking deleted successfully\"\n}"
-				}
-			]
-		},
-		{
-			"name": "BookingType-R-ID",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8080/bookings/types/1",
+1. **Customers**: When deleted, customers are marked with a `deleted_at` timestamp instead of being physically removed.
+   - Soft-deleted customers won't appear in customer listings
+   - Bookings maintain relationships with soft-deleted customers for historical purposes
+   - Cannot create new bookings with soft-deleted customers
+
+2. **Cars**: When deleted, cars are marked with a `deleted_at` timestamp instead of being physically removed.
+   - Soft-deleted cars won't appear in car listings
+   - Bookings maintain relationships with soft-deleted cars for historical purposes
+   - Cannot create new bookings with soft-deleted cars
+
+3. **Drivers**: When deleted, drivers are marked with a `deleted_at` timestamp instead of being physically removed.
+   - Soft-deleted drivers won't appear in driver listings
+   - Bookings maintain relationships with soft-deleted drivers for historical purposes
+   - Cannot create new bookings with soft-deleted drivers
+
+4. **Driver Incentives**: When a driver is soft-deleted, related incentives are also soft-deleted for consistency.
+
+**Constraints:**
+- Entities with active bookings cannot be soft-deleted
+- Finished bookings cannot be deleted (soft or hard)
+- Soft-deleted entities maintain referential integrity while being hidden from general queries
+- The booking table is not soft-deleted to maintain strict historical accuracy
