@@ -12,7 +12,7 @@ import (
 
 func GetCustomers(c *gin.Context) {
 	var customers []models.Customer
-	result := database.DB.Order("no").Find(&customers)
+	result := database.DB.Where("deleted_at IS NULL").Order("no").Find(&customers)
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve customers"})
@@ -31,7 +31,7 @@ func findCustomerByID(c *gin.Context) (*models.Customer, int, error) {
 	}
 
 	var customer models.Customer
-	result := database.DB.First(&customer, customerID)
+	result := database.DB.Where("deleted_at IS NULL").First(&customer, customerID)
 	if result.Error != nil {
 		return nil, http.StatusNotFound, result.Error
 	}
@@ -110,27 +110,23 @@ func DeleteCustomer(c *gin.Context) {
 
 	constraints := utils.CheckCustomerBookingConstraints(customer.No)
 
-	if constraints.HasBookings {
+	if constraints.HasActive {
 		details := map[string]interface{}{
 			"active_bookings": constraints.ActiveBookings,
 			"total_bookings":  constraints.TotalBookings,
 		}
-		
-		if constraints.HasActive {
-			utils.RespondWithConstraintError(c, "customer", customer.No, "active_bookings", details)
-		} else {
-			utils.RespondWithConstraintError(c, "customer", customer.No, "booking_history", details)
-		}
+		utils.RespondWithConstraintError(c, "customer", customer.No, "active_bookings", details)
 		return
 	}
 
-	result := database.DB.Delete(customer)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete customer from database"})
+	// Use soft delete instead of hard delete
+	err = utils.SoftDeleteCustomer(customer.No)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to soft delete customer"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Customer deleted successfully"})
+	utils.RespondWithSoftDeleteSuccess(c, "customer", customer.No)
 }
 
 // SubscribeToMembership subscribes a customer to a membership plan
