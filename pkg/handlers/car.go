@@ -12,7 +12,7 @@ import (
 
 func GetCars(c *gin.Context) {
 	var cars []models.Car
-	result := database.DB.Order("no").Find(&cars)
+	result := database.DB.Where("deleted_at IS NULL").Order("no").Find(&cars)
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve cars"})
@@ -31,7 +31,7 @@ func findCarByID(c *gin.Context) (*models.Car, int, error) {
 	}
 
 	var car models.Car
-	result := database.DB.First(&car, carID)
+	result := database.DB.Where("deleted_at IS NULL").First(&car, carID)
 	if result.Error != nil {
 		return nil, http.StatusNotFound, result.Error
 	}
@@ -110,25 +110,21 @@ func DeleteCar(c *gin.Context) {
 
 	constraints := utils.CheckCarBookingConstraints(car.No)
 
-	if constraints.HasBookings {
+	if constraints.HasActive {
 		details := map[string]interface{}{
 			"active_bookings": constraints.ActiveBookings,
 			"total_bookings":  constraints.TotalBookings,
 		}
-		
-		if constraints.HasActive {
-			utils.RespondWithConstraintError(c, "car", car.No, "active_bookings", details)
-		} else {
-			utils.RespondWithConstraintError(c, "car", car.No, "booking_history", details)
-		}
+		utils.RespondWithConstraintError(c, "car", car.No, "active_bookings", details)
 		return
 	}
 
-	result := database.DB.Delete(car)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete car from database"})
+	// Use soft delete instead of hard delete
+	err = utils.SoftDeleteCar(car.No)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to soft delete car"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Car deleted successfully"})
+	utils.RespondWithSoftDeleteSuccess(c, "car", car.No)
 }
