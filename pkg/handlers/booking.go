@@ -70,15 +70,15 @@ func CreateBooking(c *gin.Context) {
 
 	// Validate that customer exists
 	var customer models.Customer
-	if err := database.DB.Preload("Membership").First(&customer, booking.CustomerID).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Customer not found"})
+	if err := database.DB.Where("deleted_at IS NULL").Preload("Membership").First(&customer, booking.CustomerID).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Customer not found or has been removed"})
 		return
 	}
 
-	// Validate that car exists and is available
+	// Validate that car exists, is not soft-deleted and is available
 	var car models.Car
-	if err := database.DB.First(&car, booking.CarsID).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Car not found"})
+	if err := database.DB.Where("deleted_at IS NULL").First(&car, booking.CarsID).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Car not found or has been removed"})
 		return
 	}
 
@@ -130,8 +130,8 @@ func CreateBooking(c *gin.Context) {
 	var totalDriverCost float64 = 0
 	var driver models.Driver
 	if booking.DriverID != nil {
-		if err := database.DB.First(&driver, *booking.DriverID).Error; err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Driver not found"})
+		if err := database.DB.Where("deleted_at IS NULL").First(&driver, *booking.DriverID).Error; err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Driver not found or has been removed"})
 			return
 		}
 		totalDriverCost = float64(days) * driver.DailyCost
