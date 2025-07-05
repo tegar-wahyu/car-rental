@@ -3,6 +3,7 @@ package handlers
 import (
 	"car-rental/pkg/database"
 	"car-rental/pkg/models"
+	"car-rental/pkg/utils"
 	"net/http"
 	"strconv"
 	"time"
@@ -10,9 +11,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Booking type constants
+const (
+	BOOKING_TYPE_CAR_ONLY   = "Car Only"
+	BOOKING_TYPE_CAR_DRIVER = "Car & Driver"
+)
+
 func GetBookings(c *gin.Context) {
 	var bookings []models.Booking
-	result := database.DB.Preload("Customer").Preload("Car").Order("no").Find(&bookings)
+	result := database.DB.Preload("Customer").Preload("Customer.Membership").Preload("Car").Preload("Driver").Preload("BookingType").Order("no").Find(&bookings)
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve bookings"})
@@ -31,7 +38,7 @@ func findBookingByID(c *gin.Context) (*models.Booking, int, error) {
 	}
 
 	var booking models.Booking
-	result := database.DB.Preload("Customer").Preload("Car").First(&booking, bookingID)
+	result := database.DB.Preload("Customer").Preload("Customer.Membership").Preload("Car").Preload("Driver").Preload("BookingType").First(&booking, bookingID)
 	if result.Error != nil {
 		return nil, http.StatusNotFound, result.Error
 	}
@@ -63,15 +70,15 @@ func CreateBooking(c *gin.Context) {
 
 	// Validate that customer exists
 	var customer models.Customer
-	if err := database.DB.First(&customer, booking.CustomerID).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Customer not found"})
+	if err := database.DB.Where("deleted_at IS NULL").Preload("Membership").First(&customer, booking.CustomerID).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Customer not found or has been removed"})
 		return
 	}
 
-	// Validate that car exists and is available
+	// Validate that car exists, is not soft-deleted and is available
 	var car models.Car
-	if err := database.DB.First(&car, booking.CarsID).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Car not found"})
+	if err := database.DB.Where("deleted_at IS NULL").First(&car, booking.CarsID).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Car not found or has been removed"})
 		return
 	}
 
@@ -91,9 +98,45 @@ func CreateBooking(c *gin.Context) {
 		return
 	}
 
-	// Calculate total cost
+	// Calculate total cost (days * daily_rent)
 	days := int(booking.EndRent.Sub(booking.StartRent).Hours()/24) + 1
 	booking.TotalCost = float64(days) * car.DailyRent
+
+	// Calculate membership discount
+	var discount float64 = 0
+	if customer.Membership != nil {
+		discount = booking.TotalCost * (customer.Membership.Discount / 100)
+	}
+	booking.Discount = discount
+	// Validate booking type
+	var bookingType models.BookingType
+	if err := database.DB.First(&bookingType, booking.BookingTypeID).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Booking type not found"})
+		return
+	}
+
+	// Validate driver assignment based on booking type
+	if booking.DriverID != nil && bookingType.BookingType != BOOKING_TYPE_CAR_DRIVER {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Driver can only be assigned for 'Car & Driver' booking type"})
+		return
+	}
+
+	if booking.DriverID == nil && bookingType.BookingType == BOOKING_TYPE_CAR_DRIVER {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Driver must be assigned for 'Car & Driver' booking type"})
+		return
+	}
+
+	// Calculate driver cost if driver is requested
+	var totalDriverCost float64 = 0
+	var driver models.Driver
+	if booking.DriverID != nil {
+		if err := database.DB.Where("deleted_at IS NULL").First(&driver, *booking.DriverID).Error; err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Driver not found or has been removed"})
+			return
+		}
+		totalDriverCost = float64(days) * driver.DailyCost
+	}
+	booking.TotalDriverCost = totalDriverCost
 
 	// Start a transaction
 	tx := database.DB.Begin()
@@ -116,7 +159,7 @@ func CreateBooking(c *gin.Context) {
 	tx.Commit()
 
 	// Reload booking with relationships
-	database.DB.Preload("Customer").Preload("Car").First(&booking, booking.No)
+	database.DB.Preload("Customer").Preload("Customer.Membership").Preload("Car").Preload("Driver").Preload("BookingType").First(&booking, booking.No)
 
 	c.JSON(http.StatusCreated, gin.H{"data": booking})
 }
@@ -166,12 +209,33 @@ func UpdateBooking(c *gin.Context) {
 			return
 		}
 
-		// Recalculate total cost
+		// Recalculate total cost with membership and driver considerations
 		var car models.Car
+		var customer models.Customer
 		database.DB.First(&car, booking.CarsID)
+		database.DB.Preload("Membership").First(&customer, booking.CustomerID)
+
 		days := int(endRent.Sub(startRent).Hours()/24) + 1
+
+		// Total cost is always days * daily_rent
 		totalCost := float64(days) * car.DailyRent
 		updateData.TotalCost = &totalCost
+
+		// Calculate membership discount
+		var discount float64 = 0
+		if customer.Membership != nil {
+			discount = totalCost * (customer.Membership.Discount / 100)
+		}
+		updateData.Discount = &discount
+
+		// Calculate driver cost if driver is assigned
+		var totalDriverCost float64 = 0
+		if booking.DriverID != nil {
+			var driver models.Driver
+			database.DB.First(&driver, *booking.DriverID)
+			totalDriverCost = float64(days) * driver.DailyCost
+		}
+		updateData.TotalDriverCost = &totalDriverCost
 	}
 
 	// Update only provided fields
@@ -182,7 +246,7 @@ func UpdateBooking(c *gin.Context) {
 	}
 
 	// Reload booking with relationships
-	database.DB.Preload("Customer").Preload("Car").First(booking, booking.No)
+	database.DB.Preload("Customer").Preload("Customer.Membership").Preload("Car").Preload("Driver").Preload("BookingType").First(booking, booking.No)
 
 	c.JSON(http.StatusOK, gin.H{"data": booking})
 }
@@ -200,7 +264,11 @@ func DeleteBooking(c *gin.Context) {
 
 	// Don't allow deleting finished bookings
 	if booking.Finished {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot delete a finished booking"})
+		details := map[string]interface{}{
+			"booking_id": booking.No,
+			"finished":   booking.Finished,
+		}
+		utils.RespondWithConstraintError(c, "booking", booking.No, "finished_booking", details)
 		return
 	}
 
@@ -211,20 +279,34 @@ func DeleteBooking(c *gin.Context) {
 	result := tx.Delete(booking)
 	if result.Error != nil {
 		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete booking"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete booking from database"})
 		return
 	}
 
 	// Restore car stock
 	var car models.Car
-	if err := tx.First(&car, booking.CarsID).Error; err == nil {
-		tx.Model(&car).Update("stock", car.Stock+1)
+	if err := tx.First(&car, booking.CarsID).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find associated car for stock restoration"})
+		return
+	}
+
+	if err := tx.Model(&car).Update("stock", car.Stock+1).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to restore car stock"})
+		return
 	}
 
 	// Commit transaction
 	tx.Commit()
 
-	c.JSON(http.StatusOK, gin.H{"message": "Booking deleted successfully"})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Booking deleted successfully and car stock restored",
+		"details": map[string]interface{}{
+			"deleted_booking_id": booking.No,
+			"restored_car_stock": car.Stock + 1,
+		},
+	})
 }
 
 // FinishBooking marks a booking as finished and restores car stock
@@ -268,11 +350,29 @@ func FinishBooking(c *gin.Context) {
 		return
 	}
 
+	// Calculate and save driver incentive if driver was assigned
+	if booking.DriverID != nil {
+		days := int(booking.EndRent.Sub(booking.StartRent).Hours()/24) + 1
+		baseCost := float64(days) * car.DailyRent
+		incentive := baseCost * 0.05 // 5% of base cost (days * daily_rent)
+
+		driverIncentive := models.DriverIncentive{
+			BookingID: booking.No,
+			Incentive: incentive,
+		}
+
+		if err := tx.Create(&driverIncentive).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create driver incentive"})
+			return
+		}
+	}
+
 	// Commit transaction
 	tx.Commit()
 
 	// Reload booking with relationships
-	database.DB.Preload("Customer").Preload("Car").First(booking, booking.No)
+	database.DB.Preload("Customer").Preload("Customer.Membership").Preload("Car").Preload("Driver").Preload("BookingType").First(booking, booking.No)
 
 	c.JSON(http.StatusOK, gin.H{"data": booking, "message": "Booking finished successfully"})
 }
