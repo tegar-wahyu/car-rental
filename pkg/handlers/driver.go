@@ -12,7 +12,7 @@ import (
 
 func GetDrivers(c *gin.Context) {
 	var drivers []models.Driver
-	result := database.DB.Find(&drivers)
+	result := database.DB.Where("deleted_at IS NULL").Find(&drivers)
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve drivers"})
@@ -31,7 +31,7 @@ func findDriverByID(c *gin.Context) (*models.Driver, int, error) {
 	}
 
 	var driver models.Driver
-	result := database.DB.First(&driver, driverID)
+	result := database.DB.Where("deleted_at IS NULL").First(&driver, driverID)
 	if result.Error != nil {
 		return nil, http.StatusNotFound, result.Error
 	}
@@ -109,27 +109,23 @@ func DeleteDriver(c *gin.Context) {
 
 	constraints := utils.CheckDriverBookingConstraints(driver.No)
 
-	if constraints.HasBookings {
+	if constraints.HasActive {
 		details := map[string]interface{}{
 			"active_bookings": constraints.ActiveBookings,
 			"total_bookings":  constraints.TotalBookings,
 		}
-		
-		if constraints.HasActive {
-			utils.RespondWithConstraintError(c, "driver", driver.No, "active_bookings", details)
-		} else {
-			utils.RespondWithConstraintError(c, "driver", driver.No, "booking_history", details)
-		}
+		utils.RespondWithConstraintError(c, "driver", driver.No, "active_bookings", details)
 		return
 	}
 
-	result := database.DB.Delete(driver)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete driver from database"})
+	// Use soft delete instead of hard delete
+	err = utils.SoftDeleteDriver(driver.No)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to soft delete driver"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Driver deleted successfully"})
+	utils.RespondWithSoftDeleteSuccess(c, "driver", driver.No)
 }
 
 func GetDriverIncentives(c *gin.Context) {
@@ -146,7 +142,7 @@ func GetDriverIncentives(c *gin.Context) {
 	var incentives []models.DriverIncentive
 	result := database.DB.Preload("Booking").Preload("Booking.Customer").Preload("Booking.Car").
 		Joins("JOIN bookings ON driver_incentives.booking_id = bookings.no").
-		Where("bookings.driver_id = ?", driver.No).
+		Where("bookings.driver_id = ? AND driver_incentives.deleted_at IS NULL", driver.No).
 		Find(&incentives)
 
 	if result.Error != nil {
