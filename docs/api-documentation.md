@@ -8,6 +8,7 @@ This document provides comprehensive documentation for all API endpoints in the 
 - [Base URL](#base-url)
 - [Postman Collection](#postman-collection)
 - [Health Check](#health-check)
+- [API Versions](#api-versions)
 - [Customer Endpoints](#customer-endpoints)
 - [Car Endpoints](#car-endpoints)
 - [Booking Endpoints](#booking-endpoints)
@@ -22,6 +23,11 @@ This document provides comprehensive documentation for all API endpoints in the 
 
 The Car Rental API provides complete CRUD operations for managing customers, cars, bookings, memberships, and drivers. The API features automatic stock management, cost calculation with membership discounts, driver assignments with cost calculation, and comprehensive validation with constraint-based error handling.
 
+### API Versions
+This API is available in two versions:
+- **API v1 (Legacy)** - Basic CRUD operations without soft delete functionality
+- **API v2 (Current)** - Enhanced API with soft delete functionality, membership system, driver management, and advanced features
+
 ### Key Features
 - **Automatic Stock Management** - Car inventory automatically updated on booking operations
 - **Cost Calculation** - Total costs computed based on rental duration, daily rates, membership discounts, and driver costs
@@ -35,8 +41,14 @@ The Car Rental API provides complete CRUD operations for managing customers, car
 
 ## Base URL
 
+API v1 (Legacy):
 ```
 http://localhost:8080/api/v1
+```
+
+API v2 (Current):
+```
+http://localhost:8080/api/v2
 ```
 
 For health checks:
@@ -61,7 +73,49 @@ Check API status and availability.
 
 ---
 
-## Postman Collection
+## API Versions
+
+The Car Rental API is available in two versions with different features and capabilities:
+
+### API v1 (Legacy)
+
+**Base URL:** `http://localhost:8080/api/v1`
+
+**Features:**
+- Basic CRUD operations for customers, cars, and bookings
+- No soft delete functionality (hard deletes only)
+- No membership system
+- No driver management
+- No booking types
+- Limited error handling
+
+**Available Resources:**
+- Customers
+- Cars
+- Bookings
+
+### API v2 (Current)
+
+**Base URL:** `http://localhost:8080/api/v2`
+
+**Features:**
+- All v1 features plus:
+- Soft delete functionality for customers, cars, and drivers
+- Enhanced error responses with detailed constraints
+- Membership system with customer subscription
+- Driver management with incentives
+- Booking types (Car Only, Car & Driver)
+- Advanced validation and referential integrity
+
+**Additional Resources:**
+- Memberships
+- Drivers
+- Driver Incentives
+- Booking Types
+
+---
+
+## Postman Collections
 
 The Car Rental API includes ready-to-use Postman collections to help you test and explore the API functionality.
 
@@ -120,7 +174,9 @@ The Postman collection provides practical examples for all API features document
 
 ## Customer Endpoints
 
-### GET /api/v1 or /api/v2/customers
+### API v1 Customer Endpoints
+
+#### GET /api/v1/customers
 Retrieve all customers.
 
 **Success Response (200 OK):**
@@ -157,7 +213,7 @@ Retrieve all customers.
 }
 ```
 
-### GET /api/v1 or /api/v2/customers/:id
+#### GET /api/v1/customers/:id
 Retrieve a specific customer by ID.
 
 **URL Parameters:**
@@ -188,7 +244,7 @@ Retrieve a specific customer by ID.
 }
 ```
 
-### POST /api/v1 or /api/v2/customers
+#### POST /api/v1/customers
 Create a new customer.
 
 **Request Body:**
@@ -235,7 +291,7 @@ Create a new customer.
 }
 ```
 
-### PUT /api/v1 or /api/v2/customers/:id
+#### PUT /api/v1/customers/:id
 Update an existing customer.
 
 **URL Parameters:**
@@ -280,7 +336,212 @@ Update an existing customer.
 }
 ```
 
-### DELETE /api/v1 or /api/v2/customers/:id
+#### DELETE /api/v1/customers/:id
+Delete a customer (hard delete).
+
+**URL Parameters:**
+- `id` (integer) - Customer ID
+
+**Success Response (200 OK):**
+```json
+{
+    "message": "Customer deleted successfully"
+}
+```
+
+**Error Responses:**
+```json
+// 400 Bad Request - Invalid customer ID
+{
+    "error": "Invalid customer ID"
+}
+
+// 404 Not Found
+{
+    "error": "Customer not found"
+}
+
+// 500 Internal Server Error
+{
+    "error": "Failed to delete customer"
+}
+```
+
+### API v2 Customer Endpoints
+
+#### GET /api/v2/customers
+Retrieve all customers.
+
+**Success Response (200 OK):**
+```json
+{
+    "data": [
+        {
+            "no": 1,
+            "name": "Wawan Hermawan",
+            "nik": "3372093912739",
+            "phone_number": "081237123682",
+            "membership_id": 2,
+            "membership": {
+                "no": 2,
+                "membership_name": "Silver",
+                "discount": 7
+            }
+        },
+        {
+            "no": 2,
+            "name": "Philip Walker",
+            "nik": "3372093912785",
+            "phone_number": "081237123683"
+        },
+        {
+            "no": 3,
+            "name": "Hugo Fleming",
+            "nik": "3372093912800",
+            "phone_number": "081237123684"
+        }
+    ]
+}
+```
+
+**Error Responses:**
+```json
+// 500 Internal Server Error
+{
+    "error": "Failed to retrieve customers"
+}
+```
+
+#### GET /api/v2/customers/:id
+Retrieve a specific customer by ID.
+
+**URL Parameters:**
+- `id` (integer) - Customer ID
+
+**Success Response (200 OK):**
+```json
+{
+    "data": {
+        "no": 1,
+        "name": "Wawan Hermawan",
+        "nik": "3372093912739",
+        "phone_number": "081237123682",
+        "membership_id": 2,
+        "membership": {
+            "no": 2,
+            "membership_name": "Silver",
+            "discount": 7
+        }
+    }
+}
+```
+
+**Error Responses:**
+```json
+// 400 Bad Request - Invalid ID format
+{
+    "error": "Invalid customer ID"
+}
+
+// 404 Not Found - Customer doesn't exist
+{
+    "error": "Customer not found"
+}
+```
+
+#### POST /api/v2/customers
+Create a new customer.
+
+**Request Body:**
+```json
+{
+    "name": "John Doe",
+    "nik": "1234567890123456",
+    "phone_number": "081234567890"
+}
+```
+
+**Field Requirements:**
+- `name` (string, required) - Customer's full name
+- `nik` (string, required) - National identification number (exactly 16 characters, must be unique)
+- `phone_number` (string, required) - Customer's contact phone number (max 15 characters)
+
+**Success Response (201 Created):**
+```json
+{
+    "data": {
+        "no": 4,
+        "name": "John Doe",
+        "nik": "1234567890123456",
+        "phone_number": "081234567890"
+    }
+}
+```
+
+**Error Responses:**
+```json
+// 400 Bad Request - Missing required fields
+{
+    "error": "Key: 'Customer.Name' Error:Field validation for 'Name' failed on the 'required' tag"
+}
+
+// 400 Bad Request - Invalid NIK length
+{
+    "error": "Key: 'Customer.NIK' Error:Field validation for 'NIK' failed on the 'len' tag"
+}
+
+// 500 Internal Server Error - Duplicate NIK
+{
+    "error": "Failed to create customer"
+}
+```
+
+#### PUT /api/v2/customers/:id
+Update an existing customer.
+
+**URL Parameters:**
+- `id` (integer) - Customer ID
+
+**Request Body:**
+```json
+{
+  "name": "John Doe - Updated",
+  "nik": "1234567890123456",
+  "phone_number": "081234567890"
+}
+```
+
+**Success Response (200 OK):**
+```json
+{
+    "data": {
+        "no": 4,
+        "name": "John Doe - Updated",
+        "nik": "1234567890123456",
+        "phone_number": "081234567890"
+    }
+}
+```
+
+**Error Responses:**
+```json
+// 400 Bad Request - Invalid customer ID
+{
+    "error": "Invalid customer ID"
+}
+
+// 404 Not Found
+{
+    "error": "Customer not found"
+}
+
+// 500 Internal Server Error
+{
+    "error": "Failed to update customer"
+}
+```
+
+#### DELETE /api/v2/customers/:id
 Soft delete a customer. Preserves historical data while hiding the customer from future queries.
 
 **URL Parameters:**
@@ -323,7 +584,7 @@ Soft delete a customer. Preserves historical data while hiding the customer from
 }
 ```
 
-### PUT /api/v2/customers/:id/subscribe/:membership_id
+#### PUT /api/v2/customers/:id/subscribe/:membership_id
 Subscribe a customer to a membership plan.
 
 **URL Parameters:**
@@ -376,7 +637,7 @@ Subscribe a customer to a membership plan.
 }
 ```
 
-### DELETE /api/v2/customers/:id/unsubscribe
+#### DELETE /api/v2/customers/:id/unsubscribe
 Remove a customer's membership subscription.
 
 **URL Parameters:**
@@ -418,7 +679,9 @@ Remove a customer's membership subscription.
 
 ## Car Endpoints
 
-### GET /api/v1 or /api/v2/cars
+### API v1 Car Endpoints
+
+#### GET /api/v1/cars
 Retrieve all cars.
 
 **Success Response (200 OK):**
@@ -449,7 +712,7 @@ Retrieve all cars.
 }
 ```
 
-### GET /api/v1 or /api/v2/cars/:id
+#### GET /api/v1/cars/:id
 Retrieve a specific car by ID.
 
 **URL Parameters:**
@@ -480,7 +743,7 @@ Retrieve a specific car by ID.
 }
 ```
 
-### POST /api/v1 or /api/v2/cars
+#### POST /api/v1/cars
 Create a new car.
 
 **Request Body:**
@@ -527,7 +790,7 @@ Create a new car.
 }
 ```
 
-### PUT /api/v1 or /api/v2/cars/:id
+#### PUT /api/v1/cars/:id
 Update a specific car.
 
 **URL Parameters:**
@@ -572,7 +835,194 @@ Update a specific car.
 }
 ```
 
-### DELETE /api/v1 or /api/v2/cars/:id
+#### DELETE /api/v1/cars/:id
+Delete a specific car (hard delete).
+
+**URL Parameters:**
+- `id` (integer) - Car ID
+
+**Success Response (200 OK):**
+```json
+{
+    "message": "Car deleted successfully"
+}
+```
+
+**Error Responses:**
+```json
+// 400 Bad Request - Invalid car ID
+{
+    "error": "Invalid car ID"
+}
+
+// 404 Not Found
+{
+    "error": "Car not found"
+}
+
+// 500 Internal Server Error
+{
+    "error": "Failed to delete car from database"
+}
+```
+
+### API v2 Car Endpoints
+
+#### GET /api/v2/cars
+Retrieve all cars.
+
+**Success Response (200 OK):**
+```json
+{
+    "data": [
+        {
+            "no": 1,
+            "name": "Toyota Camry",
+            "stock": 2,
+            "daily_rent": 500000
+        },
+        {
+            "no": 2,
+            "name": "Toyota Avalon",
+            "stock": 2,
+            "daily_rent": 500000
+        }
+    ]
+}
+```
+
+**Error Responses:**
+```json
+// 500 Internal Server Error
+{
+    "error": "Failed to retrieve cars"
+}
+```
+
+#### GET /api/v2/cars/:id
+Retrieve a specific car by ID.
+
+**URL Parameters:**
+- `id` (integer) - Car ID
+
+**Success Response (200 OK):**
+```json
+{
+    "data": {
+        "no": 1,
+        "name": "Toyota Camry",
+        "stock": 2,
+        "daily_rent": 500000
+    }
+}
+```
+
+**Error Responses:**
+```json
+// 400 Bad Request - Invalid ID format
+{
+    "error": "Invalid car ID"
+}
+
+// 404 Not Found
+{
+    "error": "Car not found"
+}
+```
+
+#### POST /api/v2/cars
+Create a new car.
+
+**Request Body:**
+```json
+{
+    "name": "BMW M3",
+    "stock": 2,
+    "daily_rent": 900000
+}
+```
+
+**Field Requirements:**
+- `name` (string, required) - Car model/name
+- `stock` (integer, required) - Number of available cars (minimum 0)
+- `daily_rent` (float, required) - Daily rental price (minimum 0)
+
+**Success Response (201 Created):**
+```json
+{
+    "data": {
+        "no": 3,
+        "name": "BMW M3",
+        "stock": 2,
+        "daily_rent": 900000
+    }
+}
+```
+
+**Error Responses:**
+```json
+// 400 Bad Request - Missing required fields
+{
+    "error": "Key: 'Car.Name' Error:Field validation for 'Name' failed on the 'required' tag"
+}
+
+// 400 Bad Request - Invalid stock (negative)
+{
+    "error": "Key: 'Car.Stock' Error:Field validation for 'Stock' failed on the 'min' tag"
+}
+
+// 500 Internal Server Error
+{
+    "error": "Failed to create car"
+}
+```
+
+#### PUT /api/v2/cars/:id
+Update a specific car.
+
+**URL Parameters:**
+- `id` (integer) - Car ID
+
+**Request Body:** (all fields optional)
+```json
+{
+    "name": "BMW M3 - Updated",
+    "stock": 2,
+    "daily_rent": 900000
+}
+```
+
+**Success Response (200 OK):**
+```json
+{
+    "data": {
+        "no": 3,
+        "name": "BMW M3 - Updated",
+        "stock": 2,
+        "daily_rent": 900000
+    }
+}
+```
+
+**Error Responses:**
+```json
+// 400 Bad Request - Invalid car ID
+{
+    "error": "Invalid car ID"
+}
+
+// 404 Not Found
+{
+    "error": "Car not found"
+}
+
+// 500 Internal Server Error
+{
+    "error": "Failed to update car"
+}
+```
+
+#### DELETE /api/v2/cars/:id
 Soft delete a specific car. Preserves historical data while hiding the car from future queries.
 
 **URL Parameters:**
@@ -624,7 +1074,388 @@ Soft delete a specific car. Preserves historical data while hiding the car from 
 
 ## Booking Endpoints
 
-### GET /api/v1 or /api/v2/bookings
+### API v1 Booking Endpoints
+
+#### GET /api/v1/bookings
+Retrieve all bookings with customer and car details.
+
+**Success Response (200 OK):**
+```json
+{
+    "data": [
+        {
+            "no": 1,
+            "customer_id": 3,
+            "cars_id": 2,
+            "start_rent": "2021-01-01T00:00:00Z",
+            "end_rent": "2021-01-02T00:00:00Z",
+            "total_cost": 1000000,
+            "finished": true,
+            "customer": {
+                "no": 3,
+                "name": "Hugo Fleming",
+                "nik": "3372093912800",
+                "phone_number": "081237123684"
+            },
+            "car": {
+                "no": 2,
+                "name": "Toyota Avalon",
+                "stock": 2,
+                "daily_rent": 500000
+            }
+        },
+        {
+            "no": 2,
+            "customer_id": 11,
+            "cars_id": 2,
+            "start_rent": "2021-01-10T00:00:00Z",
+            "end_rent": "2021-01-11T00:00:00Z",
+            "total_cost": 1000000,
+            "finished": true,
+            "customer": {
+                "no": 11,
+                "name": "Damien Kaufman",
+                "nik": "3372093913202",
+                "phone_number": "081237123692"
+            },
+            "car": {
+                "no": 2,
+                "name": "Toyota Avalon",
+                "stock": 2,
+                "daily_rent": 500000
+            }
+        }
+    ]
+}
+```
+
+**Error Responses:**
+```json
+// 500 Internal Server Error
+{
+    "error": "Failed to retrieve bookings"
+}
+```
+
+#### GET /api/v1/bookings/:id
+Retrieve a specific booking by ID.
+
+**URL Parameters:**
+- `id` (integer) - Booking ID
+
+**Success Response (200 OK):**
+```json
+{
+    "data": {
+        "no": 1,
+        "customer_id": 3,
+        "cars_id": 2,
+        "start_rent": "2021-01-01T00:00:00Z",
+        "end_rent": "2021-01-02T00:00:00Z",
+        "total_cost": 1000000,
+        "finished": true,
+        "customer": {
+            "no": 3,
+            "name": "Hugo Fleming",
+            "nik": "3372093912800",
+            "phone_number": "081237123684"
+        },
+        "car": {
+            "no": 2,
+            "name": "Toyota Avalon",
+            "stock": 2,
+            "daily_rent": 500000
+        }
+    }
+}
+```
+
+**Error Responses:**
+```json
+// 400 Bad Request - Invalid ID format
+{
+    "error": "Invalid booking ID"
+}
+
+// 404 Not Found
+{
+    "error": "Booking not found"
+}
+```
+
+#### POST /api/v1/bookings
+Create a new booking.
+
+**Request Body:**
+```json
+{
+    "customer_id": 1,
+    "cars_id": 1,
+    "start_rent": "2025-07-05T00:00:00Z",
+    "end_rent": "2025-07-07T00:00:00Z"
+}
+```
+
+**Field Requirements:**
+- `customer_id` (integer, required) - Must reference existing customer
+- `cars_id` (integer, required) - Must reference existing car with stock > 0
+- `start_rent` (datetime, required) - Must be before end_rent
+- `end_rent` (datetime, required) - Must be after start_rent
+
+**Success Response (201 Created):**
+```json
+{
+    "data": {
+        "no": 3,
+        "customer_id": 1,
+        "cars_id": 1,
+        "start_rent": "2025-07-05T00:00:00Z",
+        "end_rent": "2025-07-07T00:00:00Z",
+        "total_cost": 1000000,
+        "finished": false,
+        "customer": {
+            "no": 1,
+            "name": "Wawan Hermawan",
+            "nik": "3372093912739",
+            "phone_number": "081237123682"
+        },
+        "car": {
+            "no": 1,
+            "name": "Toyota Camry",
+            "stock": 1,
+            "daily_rent": 500000
+        }
+    }
+}
+```
+
+**Error Responses:**
+```json
+// 400 Bad Request - Missing required fields
+{
+    "error": "Key: 'Booking.CustomerID' Error:Field validation for 'CustomerID' failed on the 'required' tag"
+}
+
+// 400 Bad Request - Customer not found
+{
+    "error": "Customer not found"
+}
+
+// 400 Bad Request - Car not found
+{
+    "error": "Car not found"
+}
+
+// 400 Bad Request - Car not available
+{
+    "error": "Car is not available for booking"
+}
+
+// 400 Bad Request - Invalid date order
+{
+    "error": "Start date must be before end date"
+}
+
+// 400 Bad Request - Past date
+{
+    "error": "Start date cannot be in the past"
+}
+
+// 500 Internal Server Error
+{
+    "error": "Failed to create booking"
+}
+```
+
+**Automatic Actions:**
+- `total_cost` calculated as: (rental days) × (car daily rent)
+- Car stock decremented by 1
+- Booking marked as `finished: false`
+
+#### PUT /api/v1/bookings/:id
+Update an existing booking.
+
+**URL Parameters:**
+- `id` (integer) - Booking ID
+
+**Request Body:** (all fields optional)
+```json
+{
+  "start_rent": "2025-07-06T00:00:00Z",
+  "end_rent": "2025-07-09T00:00:00Z"
+}
+```
+
+**Success Response (200 OK):**
+```json
+{
+    "data": {
+        "no": 10,
+        "customer_id": 1,
+        "cars_id": 1,
+        "start_rent": "2025-07-06T00:00:00Z",
+        "end_rent": "2025-07-09T00:00:00Z",
+        "total_cost": 2000000,
+        "finished": false,
+        "customer": {
+            "no": 1,
+            "name": "Wawan Hermawan",
+            "nik": "3372093912739",
+            "phone_number": "081237123682"
+        },
+        "car": {
+            "no": 1,
+            "name": "Toyota Camry",
+            "stock": 1,
+            "daily_rent": 500000
+        }
+    }
+}
+```
+
+**Error Responses:**
+```json
+// 400 Bad Request - Invalid booking ID
+{
+    "error": "Invalid booking ID"
+}
+
+// 404 Not Found
+{
+    "error": "Booking not found"
+}
+
+// 400 Bad Request - Cannot update finished booking
+{
+    "error": "Cannot update a finished booking"
+}
+
+// 400 Bad Request - Invalid dates
+{
+    "error": "Start date must be before end date"
+}
+
+// 500 Internal Server Error
+{
+    "error": "Failed to update booking"
+}
+```
+
+**Notes:** 
+- Cannot update finished bookings
+- Date changes trigger cost recalculation
+
+#### DELETE /api/v1/bookings/:id
+Delete a booking.
+
+**URL Parameters:**
+- `id` (integer) - Booking ID
+
+**Success Response (200 OK):**
+```json
+{
+    "message": "Booking deleted successfully and car stock restored"
+}
+```
+
+**Error Responses:**
+```json
+// 400 Bad Request - Invalid booking ID
+{
+    "error": "Invalid booking ID"
+}
+
+// 404 Not Found
+{
+    "error": "Booking not found"
+}
+
+// 400 Bad Request - Cannot delete finished booking
+{
+    "error": "Cannot delete finished booking"
+}
+
+// 500 Internal Server Error
+{
+    "error": "Failed to delete booking from database"
+}
+
+// 500 Internal Server Error
+{
+    "error": "Failed to restore car stock"
+}
+```
+
+**Automatic Actions:**
+- Car stock restored (incremented by 1)
+- Only applies to non-finished bookings
+
+#### PUT /api/v1/bookings/:id/finish
+Mark a booking as finished.
+
+**URL Parameters:**
+- `id` (integer) - Booking ID
+
+**Request Body:** None required
+
+**Success Response (200 OK):**
+```json
+{
+    "data": {
+        "no": 10,
+        "customer_id": 1,
+        "cars_id": 1,
+        "start_rent": "2025-07-06T00:00:00Z",
+        "end_rent": "2025-07-09T00:00:00Z",
+        "total_cost": 2000000,
+        "finished": true,
+        "customer": {
+            "no": 1,
+            "name": "Wawan Hermawan",
+            "nik": "3372093912739",
+            "phone_number": "081237123682"
+        },
+        "car": {
+            "no": 1,
+            "name": "Toyota Camry",
+            "stock": 2,
+            "daily_rent": 500000
+        }
+    },
+    "message": "Booking finished successfully"
+}
+```
+
+**Error Responses:**
+```json
+// 400 Bad Request - Invalid booking ID
+{
+    "error": "Invalid booking ID"
+}
+
+// 404 Not Found
+{
+    "error": "Booking not found"
+}
+
+// 400 Bad Request - Already finished
+{
+    "error": "Booking is already finished"
+}
+
+// 500 Internal Server Error
+{
+    "error": "Failed to finish booking"
+}
+```
+
+**Automatic Actions:**
+- Booking marked as `finished: true`
+- Car stock restored (incremented by 1)
+
+### API v2 Booking Endpoints
+
+#### GET /api/v2/bookings
 Retrieve all bookings with customer and car details.
 
 **Success Response (200 OK):**
@@ -710,7 +1541,7 @@ Retrieve all bookings with customer and car details.
 }
 ```
 
-### GET /api/v1 or /api/v2/bookings/:id
+#### GET /api/v2/bookings/:id
 Retrieve a specific booking by ID.
 
 **URL Parameters:**
@@ -727,17 +1558,27 @@ Retrieve a specific booking by ID.
         "end_rent": "2021-01-02T00:00:00Z",
         "total_cost": 1000000,
         "finished": true,
+        "discount": 0,
+        "booking_type_id": 1,
+        "driver_id": null,
+        "total_driver_cost": 0,
         "customer": {
             "no": 3,
             "name": "Hugo Fleming",
             "nik": "3372093912800",
-            "phone_number": "081237123684"
+            "phone_number": "081237123684",
+            "membership_id": null
         },
         "car": {
             "no": 2,
             "name": "Toyota Avalon",
             "stock": 2,
             "daily_rent": 500000
+        },
+        "booking_type": {
+            "no": 1,
+            "booking_type": "Car Only",
+            "description": "Rent Car only"
         }
     }
 }
@@ -756,7 +1597,7 @@ Retrieve a specific booking by ID.
 }
 ```
 
-### POST /api/v1 or /api/v2/bookings
+#### POST /api/v2/bookings
 Create a new booking.
 
 **Request Body:**
@@ -888,7 +1729,7 @@ Create a new booking.
 - Car stock decremented by 1
 - Booking marked as `finished: false`
 
-### PUT /api/v1 or /api/v2/bookings/:id
+#### PUT /api/v2/bookings/:id
 Update an existing booking.
 
 **URL Parameters:**
@@ -913,17 +1754,27 @@ Update an existing booking.
         "end_rent": "2025-07-09T00:00:00Z",
         "total_cost": 2000000,
         "finished": false,
+        "discount": 0,
+        "booking_type_id": 1,
+        "driver_id": null,
+        "total_driver_cost": 0,
         "customer": {
             "no": 1,
             "name": "Wawan Hermawan",
             "nik": "3372093912739",
-            "phone_number": "081237123682"
+            "phone_number": "081237123682",
+            "membership_id": null
         },
         "car": {
             "no": 1,
             "name": "Toyota Camry",
             "stock": 1,
             "daily_rent": 500000
+        },
+        "booking_type": {
+            "no": 1,
+            "booking_type": "Car Only",
+            "description": "Rent Car only"
         }
     }
 }
@@ -961,7 +1812,7 @@ Update an existing booking.
 - Cannot update finished bookings
 - Date changes trigger cost recalculation
 
-### DELETE /api/v1 or /api/v2/bookings/:id
+#### DELETE /api/v2/bookings/:id
 Delete a booking.
 
 **URL Parameters:**
@@ -1017,7 +1868,7 @@ Delete a booking.
 - Car stock restored (incremented by 1)
 - Only applies to non-finished bookings
 
-### PUT /api/v1 or /api/v2/bookings/:id/finish
+#### PUT /api/v2/bookings/:id/finish
 Mark a booking as finished.
 
 **URL Parameters:**
@@ -1036,17 +1887,27 @@ Mark a booking as finished.
         "end_rent": "2025-07-09T00:00:00Z",
         "total_cost": 2000000,
         "finished": true,
+        "discount": 0,
+        "booking_type_id": 1,
+        "driver_id": null,
+        "total_driver_cost": 0,
         "customer": {
             "no": 1,
             "name": "Wawan Hermawan",
             "nik": "3372093912739",
-            "phone_number": "081237123682"
+            "phone_number": "081237123682",
+            "membership_id": null
         },
         "car": {
             "no": 1,
             "name": "Toyota Camry",
             "stock": 2,
             "daily_rent": 500000
+        },
+        "booking_type": {
+            "no": 1,
+            "booking_type": "Car Only",
+            "description": "Rent Car only"
         }
     },
     "message": "Booking finished successfully"
@@ -1084,9 +1945,11 @@ Mark a booking as finished.
 
 ## Membership Endpoints
 
-**Note:** Membership endpoints are read-only. Memberships are managed by the system and cannot be created, updated, or deleted via the API. Customers can subscribe to existing memberships using the customer subscription endpoints.
+**Note:** Membership endpoints are only available in API v2. Memberships are managed by the system and cannot be created, updated, or deleted via the API. Customers can subscribe to existing memberships using the customer subscription endpoints.
 
-### GET /api/v2/memberships
+### API v2 Membership Endpoints
+
+#### GET /api/v2/memberships
 Retrieve all memberships.
 
 **Success Response (200 OK):**
@@ -1120,7 +1983,7 @@ Retrieve all memberships.
 }
 ```
 
-### GET /api/v2/memberships/:id
+#### GET /api/v2/memberships/:id
 Retrieve a specific membership by ID.
 
 **URL Parameters:**
@@ -1154,7 +2017,11 @@ Retrieve a specific membership by ID.
 
 ## Driver Endpoints
 
-### GET /api/v2/drivers
+**Note:** Driver endpoints are only available in API v2.
+
+### API v2 Driver Endpoints
+
+#### GET /api/v2/drivers
 Retrieve all drivers.
 
 **Success Response (200 OK):**
@@ -1457,9 +2324,11 @@ Retrieve driver incentives for a specific driver.
 
 ## Booking Type Endpoints
 
-**Note:** Booking type endpoints are read-only and accessed via `/bookings/types`. Booking types are managed by the system and cannot be created, updated, or deleted via the API.
+**Note:** Booking type endpoints are only available in API v2. They are read-only and accessed via `/bookings/types`. Booking types are managed by the system and cannot be created, updated, or deleted via the API.
 
-### GET /api/v2/bookings/types
+### API v2 Booking Type Endpoints
+
+#### GET /api/v2/bookings/types
 Retrieve all booking types.
 
 **Success Response (200 OK):**
@@ -1488,7 +2357,7 @@ Retrieve all booking types.
 }
 ```
 
-### GET /api/v2/bookings/types/:id
+#### GET /api/v2/bookings/types/:id
 Retrieve a specific booking type by ID.
 
 **URL Parameters:**
