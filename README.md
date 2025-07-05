@@ -2,11 +2,17 @@
 
 A comprehensive Go-based car rental management system API built using Gin framework with PostgreSQL database. Features advanced booking management, membership system with discounts, driver services, and automatic stock management.
 
+The API is available in two versions:
+- **API v1 (Legacy)**: Basic CRUD operations for cars, customers, and bookings with hard delete functionality
+- **API v2 (Current)**: Enhanced API with soft delete functionality, membership system, driver management, booking types, and advanced features
+
 ## Documentation
 
 > **⚡ Quick Access**: **[Complete API Documentation](docs/api-documentation.md)** 
 > 
-> Comprehensive documentation with examples, validation rules, business logic, and all endpoint details.
+> Comprehensive documentation with examples, validation rules, business logic, and all endpoint details for both API versions.
+>
+> **🧪 API Testing**: **[API v1 Postman Collection](docs/car-rental-v1.postman_collection.json)** | **[API v2 Postman Collection](docs/car-rental-v2.postman_collection.json)**
 
 ## 📑 Table of Contents
 
@@ -51,92 +57,148 @@ GIN_MODE=debug           # Default: debug
 go run cmd/main.go
 ```
 
-The API will be available at `http://localhost:8080`
+### Base URLs
+
+The API provides two versions with different endpoints:
+
+```
+API v1 (Legacy): http://localhost:8080/api/v1
+API v2 (Current): http://localhost:8080/api/v2
+```
+
+Health check endpoint: `http://localhost:8080/health`
 
 ### Production Environment
 
 The production version of this API is deployed and available at:
 
 ```
-https://car-rental-production-03b7.up.railway.app
+API v1 (Legacy): https://car-rental-production-03b7.up.railway.app/api/v1
+API v2 (Current): https://car-rental-production-03b7.up.railway.app/api/v2
 ```
 
 ## 📋 API Endpoints
+
+The API is available in two versions:
+- **API v1 (Legacy)**: Basic CRUD operations for cars, customers, and bookings with hard delete functionality
+- **API v2 (Current)**: Enhanced API with soft delete functionality, membership system, driver management, booking types, and advanced features
 
 ### Health Check
 - `GET /health` - API status check
 
 ### Customer Management
-- `GET /customers` - List all customers with membership details
-- `GET /customers/:id` - Get customer by ID with membership information
-- `POST /customers` - Create new customer
-- `PUT /customers/:id` - Update customer information
-- `DELETE /customers/:id` - Delete customer
-- `PUT /customers/:id/subscribe/:membership_id` - Subscribe customer to membership
-- `DELETE /customers/:id/unsubscribe` - Remove customer membership
+#### API v1
+- `GET /api/v1/customers` - List all customers
+- `GET /api/v1/customers/:id` - Get customer by ID
+- `POST /api/v1/customers` - Create new customer
+- `PUT /api/v1/customers/:id` - Update customer information
+- `DELETE /api/v1/customers/:id` - Hard delete customer
+
+#### API v2
+- `GET /api/v2/customers` - List all customers with membership details
+- `GET /api/v2/customers/:id` - Get customer by ID with membership information
+- `POST /api/v2/customers` - Create new customer
+- `PUT /api/v2/customers/:id` - Update customer information
+- `DELETE /api/v2/customers/:id` - Soft delete customer
+- `PUT /api/v2/customers/:id/subscribe/:membership_id` - Subscribe customer to membership
+- `DELETE /api/v2/customers/:id/unsubscribe` - Remove customer membership
 
 ### Car Management
-- `GET /cars` - List all cars
-- `GET /cars/:id` - Get car by ID
-- `POST /cars` - Create new car
-- `PUT /cars/:id` - Update car
-- `DELETE /cars/:id` - Delete car
+#### API v1
+- `GET /api/v1/cars` - List all cars
+- `GET /api/v1/cars/:id` - Get car by ID
+- `POST /api/v1/cars` - Create new car
+- `PUT /api/v1/cars/:id` - Update car
+- `DELETE /api/v1/cars/:id` - Hard delete car
+
+#### API v2
+- `GET /api/v2/cars` - List all cars
+- `GET /api/v2/cars/:id` - Get car by ID
+- `POST /api/v2/cars` - Create new car
+- `PUT /api/v2/cars/:id` - Update car
+- `DELETE /api/v2/cars/:id` - Soft delete car
 
 ### Booking Management
-- `GET /bookings` - List all bookings with complete details (customer, car, driver, booking type)
-- `GET /bookings/:id` - Get booking by ID
-- `POST /bookings` - Create new booking
-- `PUT /bookings/:id` - Update booking
-- `DELETE /bookings/:id` - Delete booking (restores car stock)
-- `PUT /bookings/:id/finish` - Mark booking as finished
-- `GET /bookings/types` - List all booking types (Car Only, Car & Driver)
-- `GET /bookings/types/:id` - Get specific booking type
+#### API v1
+- `GET /api/v1/bookings` - List all bookings with customer and car details
+- `GET /api/v1/bookings/:id` - Get booking by ID
+- `POST /api/v1/bookings` - Create new booking
+- `PUT /api/v1/bookings/:id` - Update booking
+- `DELETE /api/v1/bookings/:id` - Delete booking (restores car stock)
+- `PUT /api/v1/bookings/:id/finish` - Mark booking as finished
 
-### Membership Management (Read-Only)
-- `GET /memberships` - List all available memberships
-- `GET /memberships/:id` - Get membership details with discount information
+#### API v2
+- `GET /api/v2/bookings` - List all bookings with complete details (customer, car, driver, booking type)
+- `GET /api/v2/bookings/:id` - Get booking by ID
+- `POST /api/v2/bookings` - Create new booking with booking type and optional driver
+- `PUT /api/v2/bookings/:id` - Update booking
+- `DELETE /api/v2/bookings/:id` - Delete booking (restores car stock)
+- `PUT /api/v2/bookings/:id/finish` - Mark booking as finished
+- `GET /api/v2/bookings/types` - List all booking types (Car Only, Car & Driver)
+- `GET /api/v2/bookings/types/:id` - Get specific booking type
 
-### Driver Management
-- `GET /drivers` - List all drivers with availability status
-- `GET /drivers/:id` - Get driver by ID
-- `POST /drivers` - Create new driver
-- `PUT /drivers/:id` - Update driver
-- `DELETE /drivers/:id` - Delete driver
-- `GET /drivers/:id/incentives` - Get driver incentive history
+### Membership Management (API v2 Only, Read-Only)
+- `GET /api/v2/memberships` - List all available memberships
+- `GET /api/v2/memberships/:id` - Get membership details with discount information
+
+### Driver Management (API v2 Only)
+- `GET /api/v2/drivers` - List all drivers with availability status
+- `GET /api/v2/drivers/:id` - Get driver by ID
+- `POST /api/v2/drivers` - Create new driver
+- `PUT /api/v2/drivers/:id` - Update driver
+- `DELETE /api/v2/drivers/:id` - Soft delete driver
+- `GET /api/v2/drivers/:id/incentives` - Get driver incentive history
 
 ## ✨ Key Features
 
-- **🏷️ Membership System**: Customer membership with automatic discount calculation
-- **🚗 Driver Services**: Car & Driver booking options with driver cost calculation  
+### Core Features (Both API Versions)
 - **📦 Automatic Stock Management**: Car inventory automatically updated on booking operations
-- **💰 Cost Calculation**: Total costs computed with rental duration and daily rates
-- **🔄 Booking Types**: Support for "Car Only" and "Car & Driver" booking types
-- **✅ Advanced Validation**: Constraint-based validation with detailed error responses
+- **💰 Basic Cost Calculation**: Total costs computed with rental duration and daily rates
+- **✅ Validation**: Input validation with detailed error messages
 - **🔗 Relationship Management**: Comprehensive foreign key handling and referential integrity
+
+### Enhanced Features (API v2 Only)
+- **🏷️ Membership System**: Customer membership with automatic discount calculation
+- **🚗 Driver Services**: Car & Driver booking options with driver cost calculation
+- **🔄 Booking Types**: Support for "Car Only" and "Car & Driver" booking types
+- **💾 Soft Delete**: Preserves historical data while hiding deleted records from queries
+- **⛔ Advanced Constraints**: Additional referential integrity checks and business rules
+- **📊 Enhanced Error Responses**: Constraint-based validation with detailed structured errors
+- **💰 Advanced Cost Calculation**: Automatic discount application and driver cost integration
 
 <details>
 <summary><strong>📋 Detailed Features & Business Logic</strong></summary>
 
-### Advanced Features
+### Core Features (API v1 & v2)
 
 **Stock Management**
 - Car inventory automatically decremented on booking creation
 - Stock restored on booking deletion or completion
 - Prevents overbooking with availability checking
 
-**Cost Calculation**
+**Basic Cost Calculation**
 - Base cost: (rental days) × (car daily rent)
-- Membership discounts automatically applied
-- Driver costs calculated and added for Car & Driver bookings
-- Total cost includes all applicable fees and discounts
+- No automatic discounts in API v1
 
-**Validation & Constraints**
+**Basic Validation & Constraints**
 - Customer and car existence validation
 - Car availability checking (stock > 0)
 - Date validation (start date cannot be in past, must be before end date)
 - Booking modification restrictions (cannot modify finished bookings)
 - NIK uniqueness and format validation (16 characters)
 - Phone number format validation (max 15 characters)
+
+### Advanced Features (API v2 Only)
+
+**Enhanced Cost Calculation**
+- Membership discounts automatically applied
+- Driver costs calculated and added for Car & Driver bookings
+- Total cost includes all applicable fees and discounts
+
+**Soft Delete**
+- Preserves historical data for customers, cars, and drivers
+- Maintains referential integrity while hiding deleted records
+- Constraint-based deletion with detailed error responses
 
 **Membership Integration**
 - Customers can subscribe/unsubscribe to memberships
@@ -148,11 +210,19 @@ https://car-rental-production-03b7.up.railway.app
 - Driver incentive history tracking
 - Separate cost calculation for driver services
 
+**Booking Types**
+- Support for different booking types (Car Only, Car & Driver)
+- Validation rules specific to booking type (e.g., driver required for Car & Driver)
+
 </details>
 
 ## 🗄️ Database Schema
 
+### Current Schema (API v2)
 ![erd-v2.jpeg](docs/erd-v2.jpeg)
+
+### Legacy Schema (API v1)
+![erd-v1.jpeg](docs/erd-v1.jpeg)
 
 <details>
 <summary><strong>🗄️ Database Structure</strong></summary>
@@ -229,7 +299,7 @@ https://car-rental-production-03b7.up.railway.app
 ## 📁 Project Structure
 
 ```
-car-rental-v2/
+car-rental-2/
 ├── cmd/
 │   └── main.go              # Application entry point
 ├── pkg/
@@ -237,28 +307,30 @@ car-rental-v2/
 │   │   ├── database.go      # Database configuration and connection
 │   │   └── seed.go          # Database seeding with initial data
 │   ├── handlers/            # HTTP request handlers
-│   │   ├── customer.go      # Customer CRUD + membership operations
-│   │   ├── car.go          # Car CRUD operations
-│   │   ├── booking.go      # Booking CRUD + finish operations
-│   │   ├── membership.go   # Membership read operations
-│   │   ├── driver.go       # Driver CRUD + incentive operations
-│   │   └── booking_type.go # Booking type read operations
+│   │   ├── customer.go      # Customer CRUD + membership operations (v1, v2)
+│   │   ├── car.go          # Car CRUD operations (v1, v2)
+│   │   ├── booking.go      # Booking CRUD + finish operations (v1, v2)
+│   │   ├── membership.go   # Membership read operations (v2 only)
+│   │   ├── driver.go       # Driver CRUD + incentive operations (v2 only)
+│   │   └── booking_type.go # Booking type read operations (v2 only)
 │   ├── models/              # Data models and validation
 │   │   ├── customer.go     # Customer model
 │   │   ├── car.go         # Car model
 │   │   ├── booking.go     # Booking model
-│   │   ├── membership.go  # Membership model
-│   │   ├── driver.go      # Driver model
-│   │   ├── driver_incentive.go # Driver incentive model
-│   │   └── booking_type.go # Booking type model
+│   │   ├── membership.go  # Membership model (v2 only)
+│   │   ├── driver.go      # Driver model (v2 only)
+│   │   ├── driver_incentive.go # Driver incentive model (v2 only)
+│   │   └── booking_type.go # Booking type model (v2 only)
 │   ├── routes/              # API route definitions
-│   │   └── routes.go
+│   │   └── routes.go       # Routes for both v1 and v2 endpoints
 │   └── utils/               # Utility functions
 │       └── referential_integrity.go # Database constraint utilities
 ├── docs/
-│   ├── erd-v1.jpeg         # Original Entity Relationship Diagram
-│   ├── erd-v2.jpeg         # Updated Entity Relationship Diagram
-│   └── api-documentation.md # Complete API documentation
+│   ├── erd-v1.jpeg         # Original Entity Relationship Diagram (API v1)
+│   ├── erd-v2.jpeg         # Updated Entity Relationship Diagram (API v2)
+│   ├── api-documentation.md # Complete API documentation for both versions
+│   ├── car-rental-v1.postman_collection.json # Postman collection for API v1
+│   └── car-rental-v2.postman_collection.json # Postman collection for API v2
 ├── bin/
 │   └── car-rental.exe      # Compiled binary
 ├── go.mod                  # Go module dependencies
